@@ -1,0 +1,225 @@
+{% extends '_base.html' %}
+
+{% load static %}
+
+{% block title %}{{ post.title }}{% endblock title %}
+
+{% block body %}
+<div class="container p-3">
+    <div class="container bg-white row p-0 border rounded post-details">
+        <div class="col p-0">
+            {% if post.images.all|length > 1 %}
+                <div id="postImagesCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#postImagesCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                        {% for image in post.images.all|slice:"1:" %}
+                            <button type="button" data-bs-target="#postImagesCarousel" data-bs-slide-to="{{ forloop.counter }}" aria-label="Slide {{ forloop.counter|add:1 }}"></button>
+                        {% endfor %}
+                        </div>
+                    <div class="carousel-inner">
+                        <div class="carousel-item active bg-dark">
+                            <div style="height: 700px;">
+                                <img src="{{ post.images.all.0.image.url }}" class="d-block w-100" alt="{{ post.title }}" style="height: 700px; object-fit: cover;">
+                            </div> 
+                        </div>
+                        {% for image in post.images.all|slice:"1:" %}
+                            <div class="carousel-item bg-dark">
+                                <div style="height: 700px;">
+                                    <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ post.title }}" style="height: 700px; object-fit: cover;">
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#postImagesCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#postImagesCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            {% else %}
+                <div>
+                    <img src="{{ post.images.all.0.image.url }}" class="d-block img-fluid"  alt="{{ post.title }}">
+                </div>
+            {% endif %}
+            <div class="p-3 d-flex justify-content-center align-items-center" id="rating-stars">
+                <i class="fa-regular fa-star mx-1"></i>
+                <i class="fa-regular fa-star mx-1"></i>
+                <i class="fa-regular fa-star mx-1"></i>
+                <i class="fa-regular fa-star mx-1"></i>
+                <i class="fa-regular fa-star mx-1"></i>
+            </div>    
+        </div>
+        <div class="col p-3">
+            <form action="{% url 'update_post' %}" method="post" id="update-post-form" style="display: none;">
+                {% csrf_token %}
+                <div class="mb-3" id="post-details-header">
+                    <span>
+                        <input class="form-control title" name="title" value="{{ post.title }}"></h1> 
+                    </span>
+                </div>
+                <div class="mb-3">
+                    <div class="p-3 rounded wallpaper" style="height: 75px;">
+                        <input type="hidden" value="{{ post.author.wallpaper.url }}" name="wallpaper">
+                        <img src="{{ post.author.profile_pic.url }}" class="profile-pic" id="profile-pic" style="height: 50px; width: 50px;" alt="profile pic">
+                        <div id="username" class="d-flex align-items-center w-100">
+                            <a class="mx-3" href="{% url 'profile' post.author %}"><h4>{{ post.author }}</h4></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h2>US $</h2><input class="form-control price" name="price" type="number" value="{{ post.price }}"/>
+                </div>
+                <div class="mb-3">
+                    <textarea class="form-control description" name="description">{{ post.description }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <hr>
+                    <input type="hidden" value="{{ post.id }}" id="post-id">
+                    {% if attributes %}
+                        <table id="attributes-table" class="table">
+                            <thead>
+                                <th>Field</th>
+                                <th>Value</th>
+                            </thead>
+                                <tbody id="attributes-table-body">
+                                    {% for key, value in attributes.items %}
+                                        <tr>
+                                            <td>
+                                                <input class="form-control" name="field" value="{{ key }}"/>
+                                            </td>
+                                            <td>
+                                                <input class="form-control" name="value" value="{{ value }}"/>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                        </table>
+                    {% endif %}
+                </div>
+                <div id="post-options">
+                    <input type="submit" class="btn btn-outline-success"/>
+                    <button class="btn btn-outline-danger" id="cancel-update-post-form">Cancel</button>
+                </div>
+                <input type="hidden" name="post" value="{{ post.id }}"/>
+            </form>
+            <div id="info">
+                <div class="mb-3" id="post-details-header">
+                    <h1 class="post-details-title" id="post-title">{{ post.title }}</h1> 
+                    <button class="mx-3">
+                        <span class="fa-solid fa-pencil edit-post"></span>
+                    </button>
+                </div>
+                <div class="mb-3">
+                    <div class="p-3 rounded wallpaper" style="height: 75px;">
+                        <input type="hidden" value="{{ post.author.wallpaper.url }}" name="wallpaper">
+                        <img src="{{ post.author.profile_pic.url }}" class="profile-pic" id="profile-pic" style="height: 50px; width: 50px;" alt="profile pic">
+                        <div id="username" class="d-flex align-items-center w-100">
+                            <a class="text-decoration-none mx-3" href="{% url 'profile' post.author %}"><h4>{{ post.author }}</h4></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h2>US $<span id="post-price">{{ post.price }}</span></h2>
+                </div>
+                <div class="mb-3">
+                    <span id="post-description">{{ post.description }}</span>
+                </div>
+                <div class="mb-3">
+                    <hr>
+                    <input type="hidden" value="{{ post.id }}" id="post-id">
+                    {% if attributes %}
+                        <table id="attributes-table" class="table">
+                            <thead>
+                                <th>Field</th>
+                                <th>Value</th>
+                            </thead>
+                                <tbody id="attributes-table-body">
+                                    {% for key, value in attributes.items %}
+                                        <tr>
+                                            <td class="field">{{ key }}</td>
+                                            <td class="value">{{ value }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                        </table>
+                    {% endif %}
+                </div>
+                <div id="post-options">
+                    <button class="btn btn-outline-success">Buy Now</button>
+                    {% if post.is_in_cart %}
+                        <button class="btn btn-outline-success mx-3 add-to-cart" data-item="{{ post.id }}" style="display: none;">Add To Cart</button>
+                        <button class="btn btn-outline-success mx-3 remove-cart-item" data-item="{{ post.id }}">Remove From Cart</button>
+                    {% else %}
+                        <button class="btn btn-outline-success mx-3 add-to-cart" data-item="{{ post.id }}">Add To Cart</button>
+                        <button class="btn btn-outline-success mx-3 remove-cart-item" data-item="{{ post.id }}" style="display: none;">Remove From Cart</button>
+                    {% endif %}
+                </div>
+            </div>
+           
+        </div>
+        <hr>
+        <div class="p-3">
+            <div class="mb-3">
+                <h2>Comments</h2>
+            </div>
+            {% if user.is_authenticated %}
+                <div class="p-3 container border">
+                    <div>
+                        <img src="{{ user.profile_pic.url }}" class="profile-pic">
+                        <a class="mx-3" href="{% url 'profile' user %}">{{ user }}</a>
+                    </div>
+                    <hr>
+                    <form action="{% url 'comment' post.id %}" method="post" id="comment-form" data-post="{{ post.id }}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <textarea name="comment" rows="3" placeholder="Comment here" class="form-control" id="comment-textarea"></textarea>
+                        </div>
+                        <input type="submit" class="btn btn-success">
+                    </form> 
+                </div>
+            {% endif %}
+        </div>
+        <div class="p-3" id="comments-container">
+            {% for comment in comments %}
+                <div class="container border p-3 rounded bg-white mb-3 sm-shadow">
+                    <div>
+                        <img src="{{ comment.author.profile_pic.url }}" class="profile-pic">
+                        <a class="text-decoration-none mx-3" href="{% url 'profile' comment.author %}">{{ comment.author }}</a>
+                        <span class="text-muted mx-3">{{ comment.date }}</span>
+                    </div>
+                    <hr>
+                    <div class="mb-3">
+                        <p>{{ comment.comment }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<script src="{% static 'comments.js' %}"></script>
+<script src="{% static 'rating.js' %}"></script>
+<script>
+    const wallpapers = document.querySelectorAll('.wallpaper');
+    const profileWallpaper = document.querySelector('input[name="wallpaper"]');
+    wallpapers.forEach(wallpaper => wallpaper.style.backgroundImage = `url(${profileWallpaper.value})`);
+
+    /*const attributesTableBody = document.getElementById('attributes-table-body');
+    const postId = document.getElementById('post-id').value;
+
+    const populateAttributesTable = async () => {
+        post = await fetch(`post-json/${postId}`)
+        response = await post.json();
+
+        console.log(response);
+        for (const attribute of response) {
+            attributesTableBody.innerHTML += `<td>$${field}</td><td>${value}</td>`
+        }     
+
+    }
+
+    populateAttributesTable();*/
+</script>
+{% endblock %}

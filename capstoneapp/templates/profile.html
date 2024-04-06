@@ -1,0 +1,86 @@
+{% extends '_base.html' %}
+
+{% load static %}
+
+{% block title %}{{ profile_user }}{% endblock title %}
+
+{% block body %}
+<div class="container p-3">
+    <div class="container bg-white border rounded p-0">
+        <div id="wallpaper" class="p-3">
+            <input type="hidden" value="{{ profile_user.wallpaper.url }}" name="wallpaper">
+            <img src="{{ profile_user.profile_pic.url }}" class="profile-pic" id="profile-pic" style="height: 100px; width: 100px;" alt="profile pic">
+            <div id="username" class="d-flex align-items-center w-100">
+                <h4 class="mx-3">{{ profile_user }}</h4>
+            </div>
+        </div>
+        <div class="container p-3">
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="#about" id="about-link">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="#posts" id="posts-link">Posts</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#comments" id="comments-link">Comments</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+                </li>
+            </ul>
+            <div id="about" class="p-3 d-none">
+                <div class="mb-3">
+                    <span class="text-muted">Location: </span><b>{{ profile_user.location }}</b>
+                </div>
+                <div class="mb-3">
+                    <span class="text-muted">User since: </span><i class="fa-regular fa-calendar"></i><b class="mx-3">{{ profile_user.date_joined }}</b>
+                </div>
+                <div class="mb-3">
+                    <span class="text-muted">Username: </span><b>{{ profile_user }}</b>
+                </div>
+            </div>
+            <div id="posts" class="p-3">
+                <div class="row">
+                    <form class="d-flex">
+                        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                        <button class="btn btn-outline-success" type="submit">Search</button>
+                    </form>
+                    <select class="form-select" name="select-order">
+                        <option>Order by</option>
+                        <option value="price">Lesser price to greater price</option>
+                        <option value="date">Date</option>
+                        <option value="category">Category</option>
+                    </select>
+                    <hr>
+                </div>
+                <div class="posts-container">
+                    {% for post in posts %}
+                        {% include 'post.html' %}
+                    {% empty %}
+                        Posts
+                    {% endfor %}
+                </div>
+            </div>
+            <div id="comments" class="p-3 d-none">
+                {% for comment in comments %}
+                    <div class="container border p-3 rounded bg-white mb-3 sm-shadow">
+                        <div>
+                            <img src="{{ comment.author.profile_pic.url }}" class="profile-pic">
+                            <a class="text-decoration-none mx-3" href="{% url 'profile' comment.author %}">{{ comment.author }}</a>
+                            <span class="text-muted mx-3">{{ comment.date }}</span>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <p>{{ comment.comment }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="{% static 'profile.js' %}"></script>
+{% endblock body %}

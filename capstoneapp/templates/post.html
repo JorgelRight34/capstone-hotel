@@ -1,0 +1,56 @@
+<div class="bg-white rounded border shadow-sm mb-3 p-0 post-widget">
+    <div class="col p-0">
+        {% if post.images.all|length > 1 %}
+            <div id="postImagesCarousel" class="carousel slide">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#postImagesCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    {% for image in post.images.all|slice:"1:" %}
+                        <button type="button" data-bs-target="#postImagesCarousel" data-bs-slide-to="{{ forloop.counter }}" aria-label="Slide {{ forloop.counter|add:1 }}"></button>
+                    {% endfor %}
+                    </div>
+                <div class="carousel-inner">
+                    <div class="carousel-item active bg-dark">
+                        <div>
+                            <img src="{{ post.images.all.0.image.url }}" class="d-block img-fluid post-widget-image" alt="{{ post.title }}">
+                        </div> 
+                    </div>
+                    {% for image in post.images.all|slice:"1:" %}
+                        <div class="carousel-item bg-dark">
+                            <div>
+                                <img src="{{ image.image.url }}" class="d-block img-fluid" alt="{{ post.title }}">
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#postImagesCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#postImagesCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        {% else %}
+            <div class="d-flex justify-content-center bg-dark">
+                <img src="{{ post.images.all.0.image.url }}" class="d-block img-fluid"  alt="{{ post.title }}">
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-9 p-3">
+        <div class="mb-3">
+            <a href="{% url 'post_details' post.id %}" class="text-decoration-none text-dark">
+                <span class="h3">{{ post.title }}</span> - <span class="category text-muted">{{ post.category }}</span>
+            </a>
+        </div>
+        <div class="mb-3">
+            <h4><b>U$</b> <b class="price">{{ post.price }}</b></h4>
+        </div>
+        <div class="mb-3">
+           {{ post.description }}
+        </div>
+        <div class="date d-none">
+            {{ post.date|date:"Y-m-d"}}
+        </div>
+    </div>
+</div>
