@@ -111,6 +111,11 @@
                     <button class="mx-3">
                         <span class="fa-solid fa-pencil edit-post"></span>
                     </button>
+                    <button class="mx-3">
+                        <a class="text-decoration-none text-dark" href="{% url 'delete_post' post.id %}">
+                            <span class="fa-solid fa-trash"></span>
+                        </a>
+                    </button>
                 </div>
                 <div class="mb-3">
                     <div class="p-3 rounded wallpaper" style="height: 75px;">
@@ -158,7 +163,6 @@
                     {% endif %}
                 </div>
             </div>
-           
         </div>
         <hr>
         <div class="p-3">

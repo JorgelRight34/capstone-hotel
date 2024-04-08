@@ -1,16 +1,33 @@
 const cart = document.getElementById('cart');
-const cartItems = document.getElementById('cart-items')
-const clearCartBtn = document.getElementById('clear-cart');
+const cartItems = cart.querySelector('#cart-items')
+const clearCartBtn = cart.querySelector('#clear-cart');
 const addToCartBtns = Array.from(document.querySelectorAll('.add-to-cart'));
 const messagesContainer = document.getElementById('messages-container')
 const removeCartItemBtnsArray = Array.from(document.querySelectorAll('.remove-cart-item'));
-const cartDropdown = document.querySelector('.cart-dropdown')
+const cartDropdown = cart.querySelector('.cart-dropdown')
+
+let emptyCart = false;
+
+
+const loadEmptyCart = () => {
+    emptyCart = true;
+    clearCartBtn.style.display = 'none';
+    cartItems.innerHTML = `
+            <h5 class="text-muted">There's nothing in your cart</h5> 
+            It's a good time to start shopping
+        `;
+}
 
 
 const addToCart = async (event) => {
     const itemId = event.target.dataset.item;
     const response = await fetch(`/add-to-cart/${itemId}`);
     const cartItem = await response.json();
+
+    if (emptyCart) {
+        cartItems.innerHTML = '';
+        emptyCart = false;
+    };
 
     cartItems.innerHTML += loadCartItem(cartItem);
     clearCartBtn.style.display = 'inline-block';
@@ -67,8 +84,7 @@ const removeCartItem = async (event) => {
     item.remove();
 
     if (!cartItems.firstElementChild) {
-        cartItems.style.display = 'none';
-        clearCartBtn.style.display = 'none';
+        loadEmptyCart();
     }
 }
 
@@ -76,10 +92,10 @@ const removeCartItem = async (event) => {
 const loadCart = async () => {
     const response = await fetch(`/cart-json`);
     let cart = await response.json();
+
     cart.forEach(item => cartItems.innerHTML += loadCartItem(item));
     if (cart.length == 0) {
-        // cartDropdown.style.height = '0';
-        clearCartBtn.style.display = 'none';
+        loadEmptyCart();
     }
 }
 
@@ -90,7 +106,7 @@ const clearCart = async () => {
         cartItems.firstElementChild.remove();
     }
     // cartDropdown.style.display = 'none';
-    clearCartBtn.style.display = 'none';
+    loadEmptyCart();
 
     addToCartBtns.forEach(button => button.style.display = 'inline-block');
     removeCartItemBtnsArray.forEach(button => button.style.display = 'none');

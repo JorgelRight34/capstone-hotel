@@ -1,39 +1,22 @@
-@media only screen and (max-width: 600px) {
 
-    .post-details {
-        display: flex;
-        flex-direction: column;
-    }
 
-    .bottom-hr {
-       display: none;
-    }
-    
-    .top-hr {
-        display: block;
-    }
+.post-image-col {
+    position: relative;
 }
 
-@media only screen and (max-width: 800px) {
-
-    .posts-container {
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    .post-widget {
-        color: blue;
-        width: 90%;
-    }
-
-    .new-post-dialog {
-        width: 90%;
-        color: red;
-    }
+.cart-buttons  {
+    display: flex;
+    justify-content: end;
+    position: absolute;
+    z-index: 3;
+    top: 0;
+    left: 0;
+    padding: 0.5rem;
+    width: 100%;
 }
 
 .cart-dropdown {
-    z-index: 1;
+    z-index: 4;
     display: none;
     width: 400px;
     position: absolute;
@@ -65,13 +48,12 @@
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    
 }
 
 .post-widget {
     flex-basis: calc(32% - 1rem);
     margin: 0.5rem;
-    height: 500px;
+    height: 525px;
 }
 
 .post-widget img {
@@ -89,6 +71,18 @@
     font-size: 30px;
 }
 
+.search-posts-container {
+    width: 50%;
+}
+
+.select-posts-order-container {
+    width: 50%;
+}
+
+#username {
+    color: white;
+}
+
 .upper-hr {
     display: none;
 }
@@ -97,4 +91,67 @@
     display: flex;
     flex-direction: row;
     color: white;
+}
+
+.white-circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    border-radius: 50%;
+    height: 30px;
+    width: 30px;
+}
+
+.white-circle:hover {
+    cursor: pointer;
+}
+
+@media only screen and (max-width: 600px) {
+
+    .post-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .bottom-hr {
+       display: none;
+    }
+    
+    .top-hr {
+        display: block;
+    }
+}
+
+@media only screen and (max-width: 800px) {
+
+    .posts-container {
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .post-widget {
+        width: 90%;
+    }
+
+    .new-post-dialog {
+        width: 90%;
+        color: red;
+    }
+
+    .search-posts-options {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .search-posts-container {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .select-posts-order-container {
+        width: 100%;
+    } 
 }

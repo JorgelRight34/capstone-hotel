@@ -54,10 +54,8 @@ const submitUpdatePostForm = async (event) => {
     postDescription.innerText = post.description;
 
     const tableFields = Array.from(document.querySelectorAll('.field'));
-    console.log(tableFields)
     const tableValues = Array.from(document.querySelectorAll('.value'));
     const attributesKeys = Object.keys(post.attributes);
-    console.log(tableValues)
 
     for (let i = 0; i < attributesKeys.length; i++) {
         tableFields[i].innerText = attributesKeys[i];
@@ -140,7 +138,7 @@ const submitNewPostForm = async (event) => {
 
 
     for (let i = 1; i < fileInputs.length; i++) {
-        fieldInputs[i].remove();
+        fileInputs[i].remove();
     };
 
     for (let i = 1; i < fieldInputs.length; i++) {
@@ -195,11 +193,17 @@ imageInput.addEventListener('change', addFileInput);
 newPostForm.addEventListener('submit', (event) => submitNewPostForm(event));
 firstFieldInput.addEventListener('keyup', (event) => addTableRow(event));
 firstValueInput.addEventListener('keyup', (event) => addTableRow(event));
-editPostButton?.addEventListener('click', editPostForm);
-cancelUpdatePostFormButton?.addEventListener('click', cancelUpdatePostForm);
-updatePostForm?.addEventListener('submit', (event) => {
-    event.preventDefault();
-    submitUpdatePostForm(event);
-});
+if (editPostButton) {
+    editPostButton.addEventListener('click', editPostForm);
+};
+if (cancelUpdatePostFormButton) {
+    cancelUpdatePostFormButton.addEventListener('click', cancelUpdatePostForm);
+};
+if (updatePostForm) {
+    updatePostForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        submitUpdatePostForm(event);
+    });
+};
 
 populateCategoryOptions();

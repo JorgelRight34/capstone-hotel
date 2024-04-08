@@ -13,8 +13,27 @@ const commentsLink = document.getElementById('comments-link');
 
 const links = [aboutLink, postsLink, commentsLink];
 const postsContainer = document.querySelector('.posts-container');
-const posts = Array.from(document.querySelectorAll('.post-widget'));
+const posts = Array.from(postsContainer.querySelectorAll('.post-widget'));
 const selectOrderOption = document.querySelector('select[name="select-order"]');
+
+const searchPostInput = document.getElementById('search-post');
+
+
+const searchPosts = () => {
+    const query = searchPostInput.value.toUpperCase();
+
+    const results = posts.filter(post => {
+        let postTitle = post.querySelector('.title').innerText.toUpperCase();
+        let postDescription = post.querySelector('.description').innerText.toUpperCase();
+
+
+        if (postTitle.includes(query) || postDescription.includes(query)) {
+            return true;
+        };
+    });
+
+    reloadPosts(results);
+}
 
 
 const orderPosts = (value) => {
@@ -46,11 +65,108 @@ const orderPosts = (value) => {
             break;
     }
 
-    loadPosts();
+    reloadPosts(posts);
 }
 
 
-const loadPosts = () => {
+const loadPosts = async () => {
+    const currentURL = window.location.href;
+    const url = new URL(currentURL);
+    const username = url.pathname.split('/')[1];
+    console.log(username);
+    const response = await fetch(`user-posts/${username}`)
+    posts = response.json();
+
+    posts.forEach(post => postsContainer.innerHTML += loadPost(post));
+}
+
+const loadPost = (post) => {
+    return `
+        <div class="bg-white rounded border shadow-sm mb-3 p-0 post-widget">
+            <div class="col p-0 post-image-col">
+                <div class="cart-buttons">
+                    <div class="white-circle shadow-sm">
+                        {% if post.is_in_cart %}
+                            <i class="fa-regular fa-heart add-to-cart" data-item="{{ post.id }}" style="display: none;"></i>
+                            <i class="fa-solid fa-heart remove-cart-item" data-item="{{ post.id }}"></i>
+                        {% else %}
+                            <i class="fa-regular fa-heart add-to-cart" data-item="{{ post.id }}"></i>
+                            <i class="fa-solid fa-heart remove-cart-item" data-item="{{ post.id }}" style="display: none;"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if post.images.all|length > 1 %}
+                    <div id="post-{{ post.id }}-images-carousel" class="carousel slide">
+                        <div class="carousel-indicators">
+                            <button type="button" data-bs-target="#post-{{ post.id }}-images-carousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                            {% for image in post.images.all|slice:"1:" %}
+                                <button type="button" data-bs-target="#post-{{ post.id }}-images-carousel" data-bs-slide-to="{{ forloop.counter }}" aria-label="Slide {{ forloop.counter|add:1 }}"></button>
+                            {% endfor %}
+                            </div>
+                        <div class="carousel-inner">
+                            <div class="carousel-item active bg-dark">
+                                <div>
+                                    <img src="{{ post.images.all.0.image.url }}" class="d-block img-fluid post-widget-image" alt="{{ post.title }}">
+                                </div> 
+                            </div>
+                            {% for image in post.images.all|slice:"1:" %}
+                                <div class="carousel-item bg-dark">
+                                    <div>
+                                        <img src="{{ image.image.url }}" class="d-block img-fluid" alt="{{ post.title }}">
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#post-{{ post.id }}-images-carousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#post-{{ post.id }}-images-carousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                {% else %}
+                    <div class="d-flex justify-content-center bg-dark">
+                        <img src="{{ post.images.all.0.image.url }}" class="d-block img-fluid"  alt="{{ post.title }}">
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-9 p-3">
+                <div class="mb-3">
+                    <span class="category text-muted">{{ post.category }}</span>
+                </div>
+                <div class="mb-3">
+                    <a href="{% url 'post_details' post.id %}" class="text-decoration-none text-dark title">
+                        <h6>
+                            {% if post.title|length >= 60 %}
+                                {{ post.title|slice:":60" }}...
+                            {% else %}
+                                {{ post.title }}
+                            {% endif %}
+                        </h6>
+                    </a>
+                </div>
+                <div class="mb-3">
+                    <h6><b>U$</b> <b class="price">{{ post.price }}</b></h6>
+                </div>
+                <div class="mb-3 description">
+                    {% if post.description|length >= 63 %}
+                        {{ post.description|slice:":60" }}...
+                    {% else %}
+                        {{ post.description }}
+                    {% endif %}
+                </div>
+                <div class="date d-none">
+                    {{ post.date|date:"Y-m-d"}}
+                </div>
+            </div>
+    </div>
+    `
+}
+
+
+const reloadPosts = (posts) => {
     while (postsContainer.firstChild) {
         postsContainer.firstChild.remove();
     }
@@ -77,10 +193,19 @@ const changeSection = () => {
 }
 
 
-links.forEach(link => link.addEventListener("click", () => {
-    resetLinks();
-    changeSection();
-}));
-
 selectOrderOption.addEventListener('change', () => orderPosts(selectOrderOption.value));
-wallpaper.style.backgroundImage = `url(${profileWallpaper.value})`;
+searchPostInput.addEventListener('keyup', searchPosts);
+
+links.forEach(link => {
+    if (link) {
+        link.addEventListener('click', () => {
+            resetLinks();
+            changeSection();
+        })
+    }
+})
+
+if (wallpaper) {
+    wallpaper.style.backgroundImage = `url(${profileWallpaper.value})`;
+}
+

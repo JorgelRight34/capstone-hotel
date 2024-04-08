@@ -1,11 +1,22 @@
 <div class="bg-white rounded border shadow-sm mb-3 p-0 post-widget">
-    <div class="col p-0">
+    <div class="col p-0 post-image-col">
+        <div class="cart-buttons">
+            <div class="white-circle shadow-sm">
+                {% if post.is_in_cart %}
+                    <i class="fa-regular fa-heart add-to-cart" data-item="{{ post.id }}" style="display: none;"></i>
+                    <i class="fa-solid fa-heart remove-cart-item" data-item="{{ post.id }}"></i>
+                {% else %}
+                    <i class="fa-regular fa-heart add-to-cart" data-item="{{ post.id }}"></i>
+                    <i class="fa-solid fa-heart remove-cart-item" data-item="{{ post.id }}" style="display: none;"></i>
+                {% endif %}
+            </div>
+        </div>
         {% if post.images.all|length > 1 %}
-            <div id="postImagesCarousel" class="carousel slide">
+            <div id="post-{{ post.id }}-images-carousel" class="carousel slide">
                 <div class="carousel-indicators">
-                    <button type="button" data-bs-target="#postImagesCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#post-{{ post.id }}-images-carousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
                     {% for image in post.images.all|slice:"1:" %}
-                        <button type="button" data-bs-target="#postImagesCarousel" data-bs-slide-to="{{ forloop.counter }}" aria-label="Slide {{ forloop.counter|add:1 }}"></button>
+                        <button type="button" data-bs-target="#post-{{ post.id }}-images-carousel" data-bs-slide-to="{{ forloop.counter }}" aria-label="Slide {{ forloop.counter|add:1 }}"></button>
                     {% endfor %}
                     </div>
                 <div class="carousel-inner">
@@ -22,11 +33,11 @@
                         </div>
                     {% endfor %}
                 </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#postImagesCarousel" data-bs-slide="prev">
+                <button class="carousel-control-prev" type="button" data-bs-target="#post-{{ post.id }}-images-carousel" data-bs-slide="prev">
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Previous</span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#postImagesCarousel" data-bs-slide="next">
+                <button class="carousel-control-next" type="button" data-bs-target="#post-{{ post.id }}-images-carousel" data-bs-slide="next">
                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Next</span>
                 </button>
@@ -38,16 +49,29 @@
         {% endif %}
     </div>
     <div class="col-9 p-3">
-        <div class="mb-3">
-            <a href="{% url 'post_details' post.id %}" class="text-decoration-none text-dark">
-                <span class="h3">{{ post.title }}</span> - <span class="category text-muted">{{ post.category }}</span>
+        <div class="mb-1">
+            <span class="category text-muted">{{ post.category }}</span>
+        </div>
+        <div class="mb-1">
+            <a href="{% url 'post_details' post.id %}" class="text-decoration-none text-dark title">
+                <h6>
+                    {% if post.title|length >= 60 %}
+                        {{ post.title|slice:":60" }}...
+                    {% else %}
+                        {{ post.title }}
+                    {% endif %}
+                </h6>
             </a>
         </div>
         <div class="mb-3">
-            <h4><b>U$</b> <b class="price">{{ post.price }}</b></h4>
+            <h6><b>U$</b> <b class="price">{{ post.price }}</b></h6>
         </div>
-        <div class="mb-3">
-           {{ post.description }}
+        <div class="mb-3 description">
+            {% if post.description|length >= 63 %}
+                {{ post.description|slice:":60" }}...
+            {% else %}
+                {{ post.description }}
+            {% endif %}
         </div>
         <div class="date d-none">
             {{ post.date|date:"Y-m-d"}}

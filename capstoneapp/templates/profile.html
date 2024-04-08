@@ -7,7 +7,7 @@
 {% block body %}
 <div class="container p-3">
     <div class="container bg-white border rounded p-0">
-        <div id="wallpaper" class="p-3">
+        <div id="wallpaper" class="p-3 d-flex">
             <input type="hidden" value="{{ profile_user.wallpaper.url }}" name="wallpaper">
             <img src="{{ profile_user.profile_pic.url }}" class="profile-pic" id="profile-pic" style="height: 100px; width: 100px;" alt="profile pic">
             <div id="username" class="d-flex align-items-center w-100">
@@ -17,10 +17,10 @@
         <div class="container p-3">
             <ul class="nav nav-tabs">
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="#about" id="about-link">About</a>
+                    <a class="nav-link active" aria-current="page" href="#about" id="about-link">About</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="#posts" id="posts-link">Posts</a>
+                    <a class="nav-link" href="#posts" id="posts-link">Posts</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#comments" id="comments-link">Comments</a>
@@ -29,31 +29,33 @@
                     <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
                 </li>
             </ul>
-            <div id="about" class="p-3 d-none">
+            <div id="about" class="p-3">
                 <div class="mb-3">
                     <span class="text-muted">Location: </span><b>{{ profile_user.location }}</b>
                 </div>
                 <div class="mb-3">
-                    <span class="text-muted">User since: </span><i class="fa-regular fa-calendar"></i><b class="mx-3">{{ profile_user.date_joined }}</b>
+                    <span class="text-muted">User since: </span><b><i class="fa-regular fa-calendar"></i> {{ profile_user.date_joined }}</b>
                 </div>
                 <div class="mb-3">
                     <span class="text-muted">Username: </span><b>{{ profile_user }}</b>
                 </div>
             </div>
-            <div id="posts" class="p-3">
-                <div class="row">
-                    <form class="d-flex">
-                        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+            <div id="posts" class="p-3 d-none">
+                <div class="row mb-3 search-posts-options">
+                    <form class="col d-flex search-posts-container">
+                        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" id="search-post">
                         <button class="btn btn-outline-success" type="submit">Search</button>
                     </form>
-                    <select class="form-select" name="select-order">
-                        <option>Order by</option>
-                        <option value="price">Lesser price to greater price</option>
-                        <option value="date">Date</option>
-                        <option value="category">Category</option>
-                    </select>
-                    <hr>
+                    <div class="col select-posts-order-container">
+                        <select class="form-select" name="select-order">
+                            <option>Order by</option>
+                            <option value="price">Lesser price to greater price</option>
+                            <option value="date">Date</option>
+                            <option value="category">Category</option>
+                        </select>
+                    </div>
                 </div>
+                <hr>
                 <div class="posts-container">
                     {% for post in posts %}
                         {% include 'post.html' %}

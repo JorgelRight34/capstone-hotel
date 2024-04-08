@@ -17,11 +17,14 @@ const fillStar = (event) => {
     let starMiddle = starRect.left + starRect.width / 2;
     let mouseX = event.clientX;
 
+
     if (mouseX <= starMiddle) {
         star.classList = 'fa-solid fa-star-half-stroke mx-1';
     } else {
         star.classList = 'fa-solid fa-star mx-1';
-    }
+    };
+    
+    
 }
 
 const unfillStar = (event) => {
@@ -39,5 +42,5 @@ const unfillStar = (event) => {
 
 console.log(stars)
 
-stars.forEach(star => star.addEventListener('mouseover', (event) => fillStar(event)));
-stars.forEach(star => star.addEventListener('mouseout', (event) => unfillStar(event)));
+stars.forEach(star => star.addEventListener('click', (event) => fillStar(event)));
+// stars.forEach(star => star.addEventListener('mouseout', (event) => unfillStar(event)));

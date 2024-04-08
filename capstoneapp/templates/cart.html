@@ -1,15 +1,17 @@
 {% extends "_base.html" %}
 
+{% load static %}
+
 {% block title %}My Cart{% endblock title %}
 
 {% block body %}
     <div class="p-3 container border rounded bg-white" id="posts">
-        <div class="row mb-3">
-            <form class="d-flex w-50">
-                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+        <div class="row mb-3 search-posts-options">
+            <form class="col d-flex search-posts-container">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" id="search-post">
                 <button class="btn btn-outline-success" type="submit">Search</button>
             </form>
-            <div class="w-50">
+            <div class="col select-posts-order-container">
                 <select class="form-select" name="select-order">
                     <option>Order by</option>
                     <option value="price">Lesser price to greater price</option>
@@ -20,8 +22,8 @@
         </div>
         <hr>
         <div class="posts-container">
-            {% for item in cart.items.all %}
-                {% with post=item.item %}
+            {% for item in cart %}
+                {% with post=item %}
                     {% include 'post.html' %}
                 {% endwith %}
             {% empty %}
@@ -29,5 +31,5 @@
             {% endfor %}
         </div>
     </div>
-    <script src="{% url 'profile.js' %}"></script>
+    <script src="{% static 'profile.js' %}"></script>
 {% endblock body %}

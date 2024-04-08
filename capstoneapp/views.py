@@ -1,5 +1,6 @@
 import json
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import EmptyPage, Paginator, PageNotAnInteger
 from django.db import IntegrityError
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
@@ -17,6 +18,7 @@ def index(request):
     return render(request, "index.html")
 
 
+@login_required
 def add_to_cart(request, item):
     item = get_object_or_404(Post, pk=item)
     request.user.user_cart.append(item)
@@ -28,28 +30,44 @@ def cart_json(request):
     return JsonResponse([item.item.serialize() for item in request.user.user_cart.items.all()], safe=False)
 
 
+@login_required
 def cart(request):
-    return render(request, 'cart.html', {'cart': request.user.user_cart})
+    cart = [item.item for item in request.user.user_cart.items.all()]
+    for item in cart:
+        item.is_in_cart = request.user.user_cart.is_in_cart(item)
+    return render(request, 'cart.html', {'cart': cart})
 
 
 def categories(request):
     return JsonResponse(Category.serialize_categories(), safe=False)
 
 
+@login_required
 def comment(request, post):
     if request.method == 'POST':
         post = get_object_or_404(Post, pk=post)
         comment = Comment(author=request.user, post=post, comment=request.POST['comment'])
         comment.save()
-        print(comment.serialize())
         return JsonResponse(comment.serialize())
     
 
+@login_required
 def clear_cart(request):
     request.user.user_cart.clear_cart()
     return HttpResponse(status=204)
 
 
+@login_required
+def delete_post(request, post):
+    post = get_object_or_404(Post, pk=post)
+    if request.user == post.author:
+        post.delete()
+        return redirect(reverse('profile', kwargs={'username': request.user}))
+    else:
+        return HttpResponse(status=500)
+
+
+@login_required
 def new_post(request):
     if request.method == "POST":
         try:
@@ -94,8 +112,8 @@ def new_post(request):
     return redirect("/#new_post")
 
 
-def profile(request, user):
-    user = get_object_or_404(User, username=user)
+def profile(request, username):
+    user = get_object_or_404(User, username=username)
     posts = Paginator(user.posts.all().order_by('-date'), ITEMS_PER_PAGE)
 
     # Get page
@@ -126,6 +144,22 @@ def profile(request, user):
     })
 
 
+def user_posts(request, username):
+    user = get_object_or_404(User, username=username)
+    page = request.GET.get('page')
+    
+    posts = Paginator(user.posts.all().order_by('-date'), ITEMS_PER_PAGE)
+
+    try:
+        posts = posts.page(page)
+    except PageNotAnInteger:
+        posts = posts.page(1)
+    except EmptyPage:
+        posts = posts.page(posts.num_pages)
+
+    return JsonResponse([post.serialize() for post in posts], safe=False)
+
+
 def post_details(request, post):
     post = get_object_or_404(Post, pk=post)
     attributes = post.attributes if post.attributes else {}
@@ -154,6 +188,7 @@ def post_json(request, post):
     return JsonResponse(post.serialize())
 
 
+@login_required
 def remove_cart_item(request, item):
     item = get_object_or_404(Post, pk=item)
 
@@ -162,6 +197,7 @@ def remove_cart_item(request, item):
     return HttpResponse(status=204)
 
 
+@login_required
 def update_post(request):
     if request.method == "POST":
         post = get_object_or_404(Post, pk=request.POST['post'])
@@ -179,18 +215,14 @@ def update_post(request):
             if value:
                 values.append(value)
 
-        print(values)
-        print(fields)
-
         # Construct json data
         json_dict = {}
         for i in range(len(fields)):
             json_dict[fields[i]] = values[i]
 
-        print(json_dict)
         post.attributes = json_dict
-
         post.save()
+
         return JsonResponse(post.serialize())
 
 
