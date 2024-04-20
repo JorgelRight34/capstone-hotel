@@ -1,6 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+
 
 # Create your models here.
 class User(AbstractUser):
@@ -15,11 +18,11 @@ class User(AbstractUser):
 
     @property
     def user_cart(self):
-        return self.cart.all()[0]
-    
+        return self.cart
+
 
 class Cart(models.Model):
-    user = models.ForeignKey(User, related_name='cart', on_delete=models.CASCADE, blank=False, null=False)
+    user = models.OneToOneField(User, related_name='cart', on_delete=models.CASCADE, blank=False, null=False)
 
 
     def __str__(self):
@@ -53,33 +56,37 @@ class Cart(models.Model):
             item.delete()
 
 
+@receiver(post_save, sender=User)
+def create_user_cart(sender, instance, created, **kwargs):
+    if created:
+        Cart.objects.create(user=instance)
+        
+
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE, blank=False, null=False)
     item = models.ForeignKey('Post', related_name='items', on_delete=models.CASCADE, blank=False, null=False)
 
     
     def __str__(self):
-        return self.item
+        return str(self.item)
 
 
 class Category(models.Model):
     category = models.CharField(max_length=255, blank=False, null=False)
+    icon = models.CharField(max_length=20, blank=False, null=False) 
 
 
     def __str__(self):
         return self.category
-    
     
     def serialize(self):
         return {
             "id": self.id,
             "category": self.category
         }
-    
 
     @staticmethod
     def serialize_categories():
-        print([category.serialize() for category in Category.objects.all()])
         return [category.serialize() for category in Category.objects.all()]
     
 
@@ -90,6 +97,8 @@ class Post(models.Model):
     price = models.FloatField()
     attributes = models.JSONField(blank=True, null=True)
     category = models.ForeignKey(Category, related_name="posts", on_delete=models.CASCADE, blank=True, null=True)
+    quantity = models.IntegerField(default=1)
+    stripe_id = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
 
 
@@ -113,7 +122,7 @@ class Post(models.Model):
             },
             "attributes": self.attributes
         }
-    
+
 
 class PostImage(models.Model):
     post = models.ForeignKey(Post, related_name="images", on_delete=models.CASCADE)
@@ -123,6 +132,18 @@ class PostImage(models.Model):
     def __str__(self):
         return f"{self.post} image"
     
+
+class Purchase(models.Model):
+    buyer = models.ForeignKey(User, related_name='purchases', blank=False, null=False, on_delete=models.CASCADE)
+    item = models.ForeignKey(Post, related_name='purchases', blank=False, null=False, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    quantity = models.IntegerField()
+    price = models.IntegerField()
+
+
+    def __str__(self):
+        return f"{self.buyer} bought {self.quantity} {self.item} at {self.date} for {self.price}."
+
 
 class Comment(models.Model):
     author = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE, blank=False, null=False)
@@ -136,6 +157,7 @@ class Comment(models.Model):
     
     def serialize(self):
         return {
+                "id": self.id,
                 "author": {
                     "username": self.author.username, 
                     "profile_pic": self.author.profile_pic.url 
@@ -149,4 +171,3 @@ class Comment(models.Model):
                 },
                 "full-date": self.date.strftime("%B %d, %Y, %I:%M %p")
         }
-    

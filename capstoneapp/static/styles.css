@@ -1,7 +1,25 @@
-
-
 .post-image-col {
     position: relative;
+}
+
+.category-link {
+    width: 1px;
+    max-width: 1px;
+    flex-basis: 25%;
+    color: #666666;
+    overflow: hidden;
+}
+
+.category-link:hover {
+    cursor: pointer;
+    color: black;
+    border-bottom: 2px solid black;
+}
+
+.categories-sm {
+    display: none;
+    color: red;
+    background-color: red;
 }
 
 .cart-buttons  {
@@ -20,7 +38,13 @@
     display: none;
     width: 400px;
     position: absolute;
-    max-height: 525px;
+    right: 0.5rem;
+    max-height: 600px;
+}
+
+
+#cart-items {
+    max-height: 300px;
     overflow: auto;
 }
 
@@ -46,6 +70,7 @@
 
 .posts-container {
     display: flex;
+    justify-content: center;
     flex-direction: row;
     flex-wrap: wrap;
 }
@@ -60,28 +85,35 @@
     height: 300px;
     width: 100%;
     object-fit: cover;
-}
+};
 
 #post-details-header {
     display: flex;
     align-items: center;
-}
+};
 
 #rating-stars > i {
     font-size: 30px;
-}
+};
 
 .search-posts-container {
     width: 50%;
-}
+};
 
 .select-posts-order-container {
     width: 50%;
-}
-
+};
+/*
 #username {
     color: white;
+    -webkit-text-stroke: 2px black;
 }
+
+.username {
+    color: white;
+    -webkit-text-stroke: 2px black; 
+}
+*/
 
 .upper-hr {
     display: none;
@@ -121,8 +153,38 @@
     .top-hr {
         display: block;
     }
-}
 
+    .navbar-logo {
+        display: none;
+    }
+
+    .navbar-options {
+        display: none;
+    }
+
+    .navbar-search-bar {
+        margin: auto;
+        width: 100%;
+    }
+
+    .categories-m {
+        display: none;
+        color: red;
+    }
+
+    .category-link {
+        flex-basis: 200px;
+        width: 200px;
+    }
+
+    .categories-sm {
+        display: flex;
+        background-color: gray;
+    }
+}
+.categories-m {
+    color: red
+}
 @media only screen and (max-width: 800px) {
 
     .posts-container {

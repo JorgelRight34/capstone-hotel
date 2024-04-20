@@ -1,6 +1,3 @@
-const wallpaper = document.getElementById('wallpaper');
-const profileWallpaper = document.querySelector('input[name="wallpaper"]');
-
 const sections = {
     "#about": document.getElementById('about'),
     "#posts" : document.getElementById('posts'),
@@ -13,7 +10,6 @@ const commentsLink = document.getElementById('comments-link');
 
 const links = [aboutLink, postsLink, commentsLink];
 const postsContainer = document.querySelector('.posts-container');
-const posts = Array.from(postsContainer.querySelectorAll('.post-widget'));
 const selectOrderOption = document.querySelector('select[name="select-order"]');
 
 const searchPostInput = document.getElementById('search-post');
@@ -37,6 +33,7 @@ const searchPosts = () => {
 
 
 const orderPosts = (value) => {
+    let posts = Array.from(postsContainer.querySelectorAll('.post-widget'));
     switch (value) {
         case 'date':
             posts.sort((a, b) => {
@@ -64,7 +61,6 @@ const orderPosts = (value) => {
             });
             break;
     }
-
     reloadPosts(posts);
 }
 
@@ -79,6 +75,7 @@ const loadPosts = async () => {
 
     posts.forEach(post => postsContainer.innerHTML += loadPost(post));
 }
+
 
 const loadPost = (post) => {
     return `
@@ -167,9 +164,7 @@ const loadPost = (post) => {
 
 
 const reloadPosts = (posts) => {
-    while (postsContainer.firstChild) {
-        postsContainer.firstChild.remove();
-    }
+    postsContainer.innerHTML = ''
     posts.forEach(post => postsContainer.appendChild(post));
 }
 
@@ -192,9 +187,12 @@ const changeSection = () => {
     sections[`#${section}`].classList.toggle('d-none');
 }
 
-
-selectOrderOption.addEventListener('change', () => orderPosts(selectOrderOption.value));
-searchPostInput.addEventListener('keyup', searchPosts);
+if (selectOrderOption) {
+    selectOrderOption.addEventListener('change', () => orderPosts(selectOrderOption.value));
+}
+if (searchPostInput) {
+    searchPostInput.addEventListener('keyup', searchPosts);
+}
 
 links.forEach(link => {
     if (link) {
@@ -204,8 +202,3 @@ links.forEach(link => {
         })
     }
 })
-
-if (wallpaper) {
-    wallpaper.style.backgroundImage = `url(${profileWallpaper.value})`;
-}
-

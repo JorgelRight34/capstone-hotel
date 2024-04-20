@@ -126,5 +126,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'capstoneapp.User'
 
+LOGIN_URL = '/login'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+SECRET_STRIPE_TEST_KEY = 'sk_test_51P45ndHuJC7kQ0L2IJdTRqLmi7upVqQKBc6dMnmbPCecZo634A1r76z9O2zB6fzOir09qWBYE5VVff4xD4u6g5El00kfRWD0ZR'
+STRIPE_TEST_PUBLISHABLE_KEY = 'pk_test_51P45ndHuJC7kQ0L2frmBr42mTZcuCyQ4houY75NHSurMKzfKgTYVUzcFu0KK5OeH07dDGnMuNTnAFIxMufdIpBSi00xdslINnh'

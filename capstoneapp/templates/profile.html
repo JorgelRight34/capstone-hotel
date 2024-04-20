@@ -7,13 +7,18 @@
 {% block body %}
 <div class="container p-3">
     <div class="container bg-white border rounded p-0">
-        <div id="wallpaper" class="p-3 d-flex">
+        
+        <!-- Wallpaper -->
+        <div class="wallpaper p-3 d-flex">
             <input type="hidden" value="{{ profile_user.wallpaper.url }}" name="wallpaper">
             <img src="{{ profile_user.profile_pic.url }}" class="profile-pic" id="profile-pic" style="height: 100px; width: 100px;" alt="profile pic">
-            <div id="username" class="d-flex align-items-center w-100">
-                <h4 class="mx-3">{{ profile_user }}</h4>
+            <div class="d-flex align-items-center justify-content-center">
+                <div class="mx-3 d-flex align-items-center bg-light border rounded p-3 shadow-sm h-50">
+                    <h4 id="username" class="text-dark">{{ profile_user }}</h4>
+                </div>
             </div>
         </div>
+
         <div class="container p-3">
             <ul class="nav nav-tabs">
                 <li class="nav-item">
@@ -26,7 +31,7 @@
                     <a class="nav-link" href="#comments" id="comments-link">Comments</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+                    <a class="nav-link" href="{% url 'edit_profile' %}" tabindex="-1" aria-disabled="true">Edit Profile</a>
                 </li>
             </ul>
             <div id="about" class="p-3">
@@ -66,23 +71,14 @@
             </div>
             <div id="comments" class="p-3 d-none">
                 {% for comment in comments %}
-                    <div class="container border p-3 rounded bg-white mb-3 sm-shadow">
-                        <div>
-                            <img src="{{ comment.author.profile_pic.url }}" class="profile-pic">
-                            <a class="text-decoration-none mx-3" href="{% url 'profile' comment.author %}">{{ comment.author }}</a>
-                            <span class="text-muted mx-3">{{ comment.date }}</span>
-                        </div>
-                        <hr>
-                        <div class="mb-3">
-                            <p>{{ comment.comment }}</p>
-                        </div>
-                    </div>
+                    {% include 'comment.html' %}
                 {% endfor %}
             </div>
         </div>
     </div>
 </div>
 
-
+<script src="{% static 'wallpapers.js' %}"></script>
 <script src="{% static 'profile.js' %}"></script>
+<script src="{% static 'comments.js' %}"></script>
 {% endblock body %}

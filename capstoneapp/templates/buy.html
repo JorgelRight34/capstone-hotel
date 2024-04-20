@@ -1,0 +1,16 @@
+{% extends '_base.html' %}
+
+{% block title %}Buy{% endblock title %}
+
+{% block body %}
+    <form action="{% url 'buy_item' item.pk %}" method="post">
+        {% csrf_token %}
+        <script src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+        data-key="{{ stripe_key }}"
+        data-description="{{ item.description }}"
+        data-amount="{{ item.price }}"
+        data-label = "Pay with credit card"
+        data-locale="auto">
+        </script>
+    </form>
+{% endblock %}

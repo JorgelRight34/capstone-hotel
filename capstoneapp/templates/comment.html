@@ -1,0 +1,16 @@
+<div class="container border p-3 rounded bg-white mb-3 sm-shadow" id="comment-{{ comment.id }}">
+    <div>
+        <img src="{{ comment.author.profile_pic.url }}" class="profile-pic">
+        <a class="text-decoration-none mx-3" href="{% url 'profile' comment.author %}">{{ comment.author }}</a>
+        <span class="text-muted mx-3">{{ comment.date }}</span>
+    </div>
+    <hr>
+    <div class="mb-3">
+        <p>{{ comment.comment }}</p>
+    </div>
+    {% if user == comment.author %}
+        <div class="d-flex justify-content-end">
+            <button class="btn btn-danger delete-comment" data-comment="{{ comment.id }}">Delete</button>
+        </div>
+    {% endif %}
+</div>

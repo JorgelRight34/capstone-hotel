@@ -23,9 +23,8 @@ const fillStar = (event) => {
     } else {
         star.classList = 'fa-solid fa-star mx-1';
     };
-    
-    
 }
+
 
 const unfillStar = (event) => {
     const star = event.target;
@@ -40,7 +39,6 @@ const unfillStar = (event) => {
     }
 }
 
-console.log(stars)
 
 stars.forEach(star => star.addEventListener('click', (event) => fillStar(event)));
 // stars.forEach(star => star.addEventListener('mouseout', (event) => unfillStar(event)));

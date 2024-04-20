@@ -1,22 +1,29 @@
 const cart = document.getElementById('cart');
-const cartItems = cart.querySelector('#cart-items')
+const cartItems = cart.querySelector('#cart-items');
 const clearCartBtn = cart.querySelector('#clear-cart');
 const addToCartBtns = Array.from(document.querySelectorAll('.add-to-cart'));
-const messagesContainer = document.getElementById('messages-container')
 const removeCartItemBtnsArray = Array.from(document.querySelectorAll('.remove-cart-item'));
-const cartDropdown = cart.querySelector('.cart-dropdown')
+const messagesContainer = document.getElementById('messages-container');
+const cartDropdown = cart.querySelector('.cart-dropdown');
+const cartTotalPrice = Array.from(document.querySelectorAll('.cart-total-price'));
+const cartTotalItems = Array.from(document.querySelectorAll('.cart-total-items'));
 
 let emptyCart = false;
 
 
 const loadEmptyCart = () => {
     emptyCart = true;
+
     clearCartBtn.style.display = 'none';
+
+    cartTotalPrice.forEach(total => total.textContent = '0');
+    cartTotalItems.forEach(total => total.textContent = '0');
+
     cartItems.innerHTML = `
             <h5 class="text-muted">There's nothing in your cart</h5> 
             It's a good time to start shopping
         `;
-}
+};
 
 
 const addToCart = async (event) => {
@@ -30,9 +37,15 @@ const addToCart = async (event) => {
     };
 
     cartItems.innerHTML += loadCartItem(cartItem);
+
     clearCartBtn.style.display = 'inline-block';
-    // cartDropdown.style.height = 'auto';
-    cartItems.style.display = 'block'; // Change this line
+
+    cartTotalPrice.forEach(total => {
+        total.textContent = parseFloat(total.textContent) + parseFloat(cartItem.price);
+    })
+    cartTotalItems.forEach(total => total.textContent++);
+
+    cartItems.style.display = 'block';
 
     const removeCartItemBtns = Array.from(document.querySelectorAll(`.remove-cart-item[data-item="${itemId}"]`));
     removeCartItemBtns.forEach(button => button.style.display = 'inline-block');
@@ -40,7 +53,7 @@ const addToCart = async (event) => {
     event.target.style.display = 'none';
 
     loadMessage('<strong>Item Added To Cart!</strong> You can check the saved item in your cart.', 'success');
-}
+};
 
 
 const loadCartItem = (item) => {
@@ -92,11 +105,27 @@ const removeCartItem = async (event) => {
 const loadCart = async () => {
     const response = await fetch(`/cart-json`);
     let cart = await response.json();
+    let totalPrice = 0;
 
-    cart.forEach(item => cartItems.innerHTML += loadCartItem(item));
     if (cart.length == 0) {
         loadEmptyCart();
+        return;
     }
+
+    cart.forEach(item => {
+        cartItems.innerHTML += loadCartItem(item);
+        totalPrice += parseFloat(item.price);
+    });
+
+    cartTotalPrice.forEach(total => {
+        total.textContent = totalPrice;
+    });
+
+    cartTotalItems.forEach(total => {
+        total.textContent = cart.length;
+    });
+
+    clearCartBtn.style.display = 'inline-block';
 }
 
 
@@ -105,8 +134,9 @@ const clearCart = async () => {
     while (cartItems.firstElementChild) {
         cartItems.firstElementChild.remove();
     }
-    // cartDropdown.style.display = 'none';
+
     loadEmptyCart();
+    loadMessage('<bCart cleared</b> You can start adding items to your cart!', 'info');
 
     addToCartBtns.forEach(button => button.style.display = 'inline-block');
     removeCartItemBtnsArray.forEach(button => button.style.display = 'none');

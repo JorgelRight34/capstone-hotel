@@ -40,6 +40,7 @@ const checkUsernameAvailability = () => {
     fetch(`/profile/${userNameInput.value}`)
     .then(response => {
         if (response.status == 200) {
+            // If status is 200 then a user with the username already exists
             userNameInput.classList.add('is-invalid');
             submitButton.disabled = true;
         }
