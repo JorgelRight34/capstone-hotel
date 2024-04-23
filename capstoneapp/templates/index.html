@@ -9,25 +9,25 @@
         <div class="categories-m">
             <!-- Categories carousel for medium and large devices -->
             <div id="categoriesCarousel" class="carousel carousel-dark slide row categories-m" data-bs-ride="carousel" data-bs-interval="false">
-                <div class="col-md-3 carousel-button">
+                <div class="col-3 col-md-3 col-sm-3 col-lg-3 carousel-button">
                     <button class="carousel-control-prev" type="button" data-bs-target="#categoriesCarousel" data-bs-slide="prev">
                         <i class="fas fa-chevron-left text-dark" aria-hidden="true"></i>
                         <span class="visually-hidden">Previous</span>
                     </button>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 col-sm-6">
                     <div class="carousel-inner">
                         <div class="carousel-item active">
                             <div class="row d-flex justify-content-center">
                                 {% for category in categories.0 %}
-                                <div class="category-link" data-category="{{ category.id }}">
+                                <a href="#{{ category }}" class="category-link" data-category="{{ category.id }}">
                                     <div class="d-flex justify-content-center align-items-center" data-category="{{ category.id }}">
                                         <span class="{{ category.icon }}" data-category="{{ category.id }}"></span>
                                     </div>
                                     <div class="d-flex justify-content-center align-items-center" data-category="{{ category.id }}">
                                         {{ category }}
                                     </div>
-                                </div>
+                                </a>
                                 {% endfor %}
                             </div>
                         </div>
@@ -35,14 +35,14 @@
                         <div class="carousel-item">
                             <div class="row d-flex justify-content-center">
                                 {% for category in list %}
-                                <div class="category-link" data-category="{{ category.id }}">
+                                <a href="#{{ category }}" class="category-link" data-category="{{ category.id }}">                               
                                     <div class="d-flex justify-content-center align-items-center" data-category="{{ category.id }}">
                                         <span class="{{ category.icon }}" data-category="{{ category.id }}"></span>
                                     </div>
                                     <div class="d-flex justify-content-center align-items-center" data-category="{{ category.id }}">
                                         {{ category }}
-                                    </div>
-                                </div>
+                                    </div>                                  
+                                </a>
                                 {% endfor %}
                             </div>
                         </div>
@@ -59,17 +59,17 @@
         </div>
 
         <!-- Categories for mobile devices -->
-        <div class="categories-sm">
+        <div class="categories-sm mb-3">
             {% for category in categories %}
-            {% for c in category %}
-            <div class="category-link" data-category="{{ c.id }}">
-                <div class="d-flex justify-content-center align-items-center" data-category="{{ c.id }}">
-                    <span class="{{ c.icon }}" data-category="{{ c.id }}"></span>
+            {% for category in category %}
+            <a href="#{{ category }}" class="category-link" data-category="{{ category.id }}">                               
+                <div class="d-flex justify-content-center align-items-center" data-category="{{ category.id }}">
+                    <span class="{{ category.icon }}" data-category="{{ category.id }}"></span>
                 </div>
-                <div class="d-flex justify-content-center align-items-center" data-category="{{ c.id }}">
-                    {{ c }}
-                </div>
-            </div>
+                <div class="d-flex justify-content-center align-items-center" data-category="{{ category.id }}">
+                    {{ category }}
+                </div>                                  
+            </a>
             {% endfor %}
             {% endfor %}
         </div>

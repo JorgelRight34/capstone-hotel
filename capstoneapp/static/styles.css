@@ -3,11 +3,10 @@
 }
 
 .category-link {
-    width: 1px;
-    max-width: 1px;
     flex-basis: 25%;
     color: #666666;
     overflow: hidden;
+    text-decoration: none;
 }
 
 .category-link:hover {
@@ -18,8 +17,9 @@
 
 .categories-sm {
     display: none;
-    color: red;
-    background-color: red;
+    max-height: 40px;
+    overflow-x: auto;
+    white-space: nowrap;
 }
 
 .cart-buttons  {
@@ -41,7 +41,6 @@
     right: 0.5rem;
     max-height: 600px;
 }
-
 
 #cart-items {
     max-height: 300px;
@@ -92,8 +91,9 @@
     align-items: center;
 };
 
-#rating-stars > i {
-    font-size: 30px;
+.rating-star {
+    font-size: 50px;
+    color: red;
 };
 
 .search-posts-container {
@@ -103,17 +103,6 @@
 .select-posts-order-container {
     width: 50%;
 };
-/*
-#username {
-    color: white;
-    -webkit-text-stroke: 2px black;
-}
-
-.username {
-    color: white;
-    -webkit-text-stroke: 2px black; 
-}
-*/
 
 .upper-hr {
     display: none;
@@ -139,7 +128,8 @@
     cursor: pointer;
 }
 
-@media only screen and (max-width: 600px) {
+
+@media only screen and (max-width: 1200px) {
 
     .post-details {
         display: flex;
@@ -154,37 +144,51 @@
         display: block;
     }
 
+    ::-webkit-scrollbar {
+        display: none;
+    }
+
     .navbar-logo {
         display: none;
     }
 
     .navbar-options {
-        display: none;
+        display: flex;
+        flex-direction: row;
+        width: 50%;
     }
 
-    .navbar-search-bar {
-        margin: auto;
-        width: 100%;
-    }
-
-    .categories-m {
+    .logout {
         display: none;
         color: red;
     }
 
-    .category-link {
-        flex-basis: 200px;
-        width: 200px;
+    .navbar-search-bar {
+        margin: auto;
+        width: 10%;
+    }
+
+    .navbar-username {
+        display: none;
+    }
+
+    .categories-m {
+        display: none;
+        background-color: beige;
     }
 
     .categories-sm {
         display: flex;
-        background-color: gray;
+        flex-direction: row;
+    }
+
+    .category-link {
+        flex-basis: 100px;
+        flex-shrink: 0;
+        width: 100px;
     }
 }
-.categories-m {
-    color: red
-}
+
 @media only screen and (max-width: 800px) {
 
     .posts-container {
@@ -194,6 +198,7 @@
 
     .post-widget {
         width: 90%;
+        margin: auto;
     }
 
     .new-post-dialog {

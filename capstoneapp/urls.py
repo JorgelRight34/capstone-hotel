@@ -23,7 +23,9 @@ urlpatterns = [
     path('search-posts', views.search_posts, name='search-posts'),
     path('post-json/<int:post>', views.post_json, name='post_json'),
     path('register', views.register_view, name='register'),
+    path('rate-item/<int:item>', views.rate_item, name='rate_item'),
     path('remove-cart-item/<int:item>', views.remove_cart_item, name='remove_cart_item'),
     path('update-post', views.update_post, name='update_post'),
-    path('user-posts/<str:username>', views.user_posts, name='user-posts'),
+    path('user-posts/<str:username>', views.user_posts, name='user_posts'),
+    path('user-comments/<str:username>', views.user_comments, name='user_comments')
 ]

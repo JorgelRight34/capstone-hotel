@@ -45,12 +45,16 @@
                     <img src="{{ post.images.all.0.image.url }}" class="d-block w-100" alt="{{ post.title }}" style="height: 500px; object-fit: cover;">
                 </div> 
             {% endif %}
-            <div class="p-3 d-flex justify-content-center align-items-center" id="rating-stars">
-                <i class="fa-regular fa-star mx-1"></i>
-                <i class="fa-regular fa-star mx-1"></i>
-                <i class="fa-regular fa-star mx-1"></i>
-                <i class="fa-regular fa-star mx-1"></i>
-                <i class="fa-regular fa-star mx-1"></i>
+            <div class="p-3 d-flex justify-content-center align-items-center rating-stars" id="rating-stars" data-item="{{ post.id }}">
+                <i class="fa-regular fa-star mx-1 rating-star fs-1" id="1"></i>
+                <i class="fa-regular fa-star mx-1 fs-1" id="2"></i>
+                <i class="fa-regular fa-star mx-1 fs-1" id="3"></i>
+                <i class="fa-regular fa-star mx-1 fs-1" id="4"></i>
+                <i class="fa-regular fa-star mx-1 fs-1" id="5"></i>
+                <form class="d-none" method="post" id="rating-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="rating" value=""/>
+                </form>
             </div>    
         </div>
         <div class="col p-3">
@@ -197,7 +201,7 @@
             <div class="mb-3">
                 <h2>Comments</h2>
             </div>
-            {% if user.is_authenticated %}
+            {% if user.is_authenticated and has_bought %}
                 <div class="p-3 container border">
                     <div>
                         <img src="{{ user.profile_pic.url }}" class="profile-pic">

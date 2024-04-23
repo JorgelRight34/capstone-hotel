@@ -14,6 +14,15 @@ const selectOrderOption = document.querySelector('select[name="select-order"]');
 
 const searchPostInput = document.getElementById('search-post');
 
+let posts_page = 1;
+let comments_page = 1;
+
+
+// Get username
+const currentURL = window.location.href;
+const url = new URL(currentURL);
+const username = url.pathname.split('/')[2];
+
 
 const searchPosts = () => {
     const query = searchPostInput.value.toUpperCase();
@@ -69,7 +78,7 @@ const loadPosts = async () => {
     const currentURL = window.location.href;
     const url = new URL(currentURL);
     const username = url.pathname.split('/')[1];
-    console.log(username);
+
     const response = await fetch(`user-posts/${username}`)
     posts = response.json();
 
@@ -186,6 +195,52 @@ const changeSection = () => {
 
     sections[`#${section}`].classList.toggle('d-none');
 }
+
+
+const loadMoreUserPosts = async () => {
+    if (Math.round(window.innerHeight + window.scrollY)  >= document.body.offsetHeight) {
+        // Check if user is in #posts section
+        if (window.location.href !== '#posts') {
+            return;
+        }
+
+        // Load more items when scrolled to the bottom
+        posts_page += 1;
+        const response = await fetch(`/user-posts/${username}?page=${posts_page}`);
+
+        if (response.status === 404) {
+            return;
+        }
+        
+        const posts = await response.json();
+
+        for (const post in posts) {
+            postsContainer.insertAdjacentHTML('beforeend', posts[post]);
+        }
+
+        loadPostEventListeners();
+    }
+}
+
+
+const loadMoreUserComments = async () => {
+   if (Math.round(window.innerHeight + window.scrollY)  >= document.body.offsetHeight) {
+        if (window.location.hash !== '#comments') {
+            return;
+        }
+
+        const response = await fetch(`/user-comments/${username}?page=${comments_page}`)
+        const comments = await response.json();
+
+        for (const comment in comments) {
+            sections['#comments'].insertAdjacentHTML('beforeend', comments[comment]);
+        }
+    }
+}
+
+
+window.onscroll = loadMoreUserPosts
+window.onscroll = loadMoreUserComments
 
 if (selectOrderOption) {
     selectOrderOption.addEventListener('change', () => orderPosts(selectOrderOption.value));

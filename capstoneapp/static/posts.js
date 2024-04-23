@@ -27,6 +27,20 @@ let postPrice = document.getElementById('post-price');
 let postDescription = document.getElementById('post-description');
 
 
+const loadPostEventListeners = () => {
+    const newAddToCartBtns = Array.from(postsContainer.querySelectorAll('.add-to-cart'));
+    const newRemoveCartItemBtnsArray = Array.from(postsContainer.querySelectorAll('.remove-cart-item'));
+
+    newAddToCartBtns.forEach(button => {
+        button.addEventListener('click', (event) => addToCart(event));
+    });
+
+    newRemoveCartItemBtnsArray.forEach(button => {
+        button.addEventListener('click', (event) => removeCartItem(event));
+    });
+};
+
+
 const cancelUpdatePostForm = () => {
     updatePostForm.style.display = 'none';
     infoDiv.style.display = 'block'
@@ -152,6 +166,8 @@ const submitNewPostForm = async (event) => {
     };
 
     loadMessage('Post succesfully uploaded', 'success');
+
+    event.target.close();
 };
 
 

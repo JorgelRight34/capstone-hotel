@@ -12,10 +12,11 @@ from django.urls import reverse
 from django.template.loader import render_to_string
 
 
-from .models import User, Post, PostImage, Purchase, Comment, Category
+from .models import User, Post, PostImage, Purchase, Comment, Category, Rating
 
 
 ITEMS_PER_PAGE = 10
+POSTS_PER_PAGE = 6
 stripe.api_key = settings.SECRET_STRIPE_TEST_KEY
 
 
@@ -25,7 +26,7 @@ def index(request):
     page = request.GET.get('page')
 
     # Paginator
-    posts = Paginator(Post.objects.all(), 30)
+    posts = Paginator(Post.objects.all(), POSTS_PER_PAGE)
 
     try:
         posts = posts.page(page)
@@ -34,23 +35,32 @@ def index(request):
     except EmptyPage:
         posts = posts.page(posts.num_pages)
 
-    for post in posts:
-        if request.user.cart.is_in_cart(post.id):
-            post.is_in_cart = True
+    # Check if posts are in cart only if user is authenticated
+    if request.user.is_authenticated:
+        for post in posts:
+            if request.user.cart.is_in_cart(post.id):
+                post.is_in_cart = True
     
+
     categories = Category.objects.all()
+
+    # Categories pages contains lists of categories
     categories_pages = []
     categories_per_page = 4
+
     start_index = 0
     end_index = categories_per_page
 
-    for _ in range(len(Category.objects.all())):
+    for _ in range(len(categories)):
+        # Get page of categories
         page = categories[start_index:end_index]
+        # If page is empty then break
         if len(page) == 0:
             break
 
         categories_pages.append(page)
 
+        # Update start index and end index
         start_index += categories_per_page
         end_index += categories_per_page
 
@@ -133,8 +143,15 @@ def categories(request):
 def comment(request, post):
     if request.method == 'POST':
         post = get_object_or_404(Post, pk=post)
+
+        # Allow only buyers to comment
+        if not request.user.has_bought(post.id):
+            return HttpResponse(status=405)
+        
+        # Create comment
         comment = Comment(author=request.user, post=post, comment=request.POST['comment'])
         comment.save()
+
         return JsonResponse(comment.serialize())
     
 
@@ -147,6 +164,8 @@ def clear_cart(request):
 @login_required
 def delete_post(request, post):
     post = get_object_or_404(Post, pk=post)
+
+    # Avoid others user to delete others users posts
     if request.user == post.author:
         post.delete()
         return redirect(reverse('profile', kwargs={'username': request.user}))
@@ -157,6 +176,8 @@ def delete_post(request, post):
 @login_required
 def delete_comment(request, comment):
     comment = get_object_or_404(Comment, pk=comment)
+
+    # Avoid others user to delete others users comments
     if request.user == comment.author:
         comment.delete();
         return HttpResponse(status=204)
@@ -179,6 +200,7 @@ def edit_profile(request):
             user.wallpaper = wallpaper
         
         user.save()
+
         return HttpResponseRedirect(reverse('profile', args=[request.user.username]))
 
     return render(request, 'edit_profile.html')
@@ -188,10 +210,10 @@ def edit_profile(request):
 def new_post(request):
     if request.method == "POST":
         try:
-            author, title = request.user, request.POST["title"]
-            description, price, category = request.POST["description"], request.POST["price"], request.POST["category"]
+            author, title = request.user, request.POST['title']
+            description, price, category = request.POST['description'], request.POST['price'], request.POST['category']
         except:
-            return redirect("/#new_post")
+            return redirect('/#new_post')
         
         post = Post()
         category = get_object_or_404(Category, pk=category)
@@ -218,6 +240,8 @@ def new_post(request):
 
         # Register item in stripe
         stripe.api_key = settings.SECRET_STRIPE_TEST_KEY
+
+        # Create product representing current product
         product = stripe.Product.create(
             name=post.title,
             description=post.description,
@@ -226,6 +250,7 @@ def new_post(request):
             metadata=json_dict
         )
 
+        # Create price representing current product's price
         product_price = stripe.Price.create(
             unit_amount=post.price,
             currency="usd",
@@ -233,6 +258,7 @@ def new_post(request):
             product=product['id'],
         )
 
+        # Link product with item in the database via the stripe's product's id
         post.stripe_id = product['id']
         post.save()
 
@@ -249,11 +275,11 @@ def new_post(request):
 
 def profile(request, username):
     user = get_object_or_404(User, username=username)
-    posts = Paginator(user.posts.all().order_by('-date'), ITEMS_PER_PAGE)
 
     # Get page
-    page = request.GET.get('page')
-
+    page = request.GET.get('items_page')
+    
+    posts = Paginator(user.posts.all().order_by('-date'), 6)
     try:
         posts = posts.page(page)
     except PageNotAnInteger:
@@ -262,15 +288,17 @@ def profile(request, username):
         posts = posts.page(posts.num_pages)
 
 
-    comments = []
+    comments = Paginator(user.comments.all(), 3)
+    try:
+        comments = comments.page(page)
+    except PageNotAnInteger:
+        comments = comments.page(1)
+    except EmptyPage:
+        posts = comments.page(comments.num_pages)
+
+    # Check if post is in cart
     for post in posts:
         post.is_in_cart = request.user.user_cart.is_in_cart(post)
-        counter = 0
-        for comment in post.comments.all():
-            comments.append(comment)
-            if counter == 5:
-                break
-            counter += 1
 
     return render(request, "profile.html", {
         "profile_user": user,
@@ -300,7 +328,8 @@ def post_details(request, post):
         'post': post,
         'attributes': attributes,
         'comments': comments,
-        'stripe_key': settings.STRIPE_TEST_PUBLISHABLE_KEY
+        'stripe_key': settings.STRIPE_TEST_PUBLISHABLE_KEY,
+        'has_bought': request.user.has_bought(post.id)
     })
 
 
@@ -312,10 +341,27 @@ def post_json(request, post):
 @login_required
 def remove_cart_item(request, item):
     item = get_object_or_404(Post, pk=item)
-
     request.user.user_cart.remove_from_cart(item)
 
     return HttpResponse(status=204)
+
+
+def rate_item(request, item):
+    if request.method == 'POST':
+        item = get_object_or_404(Post, pk=item)
+
+        # Avoid letting a user who hasn't bought the item to rate
+        if not request.user.has_bought(item.id):
+            return HttpResponse(status=405)
+        
+        # Create rating
+        rating = Rating(user=request.user, item=item, rating=request.POST['rating'])
+        rating.save()
+
+        # Set new rating for item
+        item.set_rating(float(rating.rating))
+
+        return HttpResponse(status=204)
 
 
 @login_required
@@ -351,16 +397,33 @@ def user_posts(request, username):
     user = get_object_or_404(User, username=username)
     page = request.GET.get('page')
     
-    posts = Paginator(user.posts.all().order_by('-date'), ITEMS_PER_PAGE)
+    posts = Paginator(user.posts.all().order_by('-date'), 6)
 
     try:
         posts = posts.page(page)
     except PageNotAnInteger:
         posts = posts.page(1)
     except EmptyPage:
-        posts = posts.page(posts.num_pages)
+        return HttpResponse(status=404)
 
-    return JsonResponse([post.serialize() for post in posts], safe=False)
+    return JsonResponse(Post.render_posts_json(posts, request.user))
+
+
+def user_comments(request, username):
+    user = get_object_or_404(User, username=username)
+    page = request.GET.get('page')
+    
+    comments = Paginator(user.comments.all().order_by('-date'), 3)
+
+    try:
+       comments = comments.page(page)
+    except PageNotAnInteger:
+        comments = comments.page(1)
+    except EmptyPage:
+        return HttpResponse(status=404)
+
+
+    return JsonResponse(Comment.render_comments_json(comments, request.user))
 
 
 def login_view(request):
@@ -422,13 +485,17 @@ def register_view(request):
 
 def search_posts(request):
     query = request.GET.get('q')
+    category = request.GET.get('category')
     posts = Post.objects.all()
 
+    if category:
+        category = Category.objects.get(category=category)
+
     if (query):
-        posts = Post.objects.filter(Q(title__icontains=query) | Q(description__icontains=query))
+        posts = Post.objects.filter(Q(title__icontains=query) | Q(description__icontains=query), category=category)
 
     # Paginator
-    posts = Paginator(posts, 6)
+    posts = Paginator(posts, POSTS_PER_PAGE)
 
     # Get page
     page = request.GET.get('page')
@@ -438,10 +505,7 @@ def search_posts(request):
     except PageNotAnInteger:
         posts = posts.page(1)
     except EmptyPage:
-        posts = posts.page(posts.num_pages)
+        return Http404
 
-    posts_json = {}
-    for post in posts:
-        posts_json[f'{post.id}'] = render_to_string('post.html', {'post': post})
 
-    return JsonResponse(posts_json)
+    return JsonResponse(Post.render_posts_json(posts, request.user))
