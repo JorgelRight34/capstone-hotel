@@ -1,4 +1,4 @@
-const cart = document.getElementById('cart');
+const cart = document.getElementById('wishlist');
 const cartItems = cart.querySelector('#cart-items');
 const clearCartBtn = cart.querySelector('#clear-cart');
 const addToCartBtns = Array.from(document.querySelectorAll('.add-to-cart'));
@@ -28,8 +28,10 @@ const loadEmptyCart = () => {
 
 const addToCart = async (event) => {
     const itemId = event.target.dataset.item;
-    const response = await fetch(`/add-to-cart/${itemId}`);
+
+    const response = await fetch(`/add-to-wishlist/${itemId}`);
     const cartItem = await response.json();
+
 
     if (emptyCart) {
         cartItems.innerHTML = '';
@@ -47,12 +49,13 @@ const addToCart = async (event) => {
 
     cartItems.style.display = 'block';
 
+    const addToCartBtn = document.querySelector(`.add-to-cart[data-item="${itemId}"`);
+    addToCartBtn.style.display = 'none';
+
     const removeCartItemBtns = Array.from(document.querySelectorAll(`.remove-cart-item[data-item="${itemId}"]`));
-    removeCartItemBtns.forEach(button => button.style.display = 'inline-block');
+    removeCartItemBtns.forEach(button => { console.log(button); button.style.display = 'inline-block';});
 
-    event.target.style.display = 'none';
-
-    loadMessage('<strong>Item Added To Cart!</strong> You can check the saved item in your cart.', 'success');
+    loadMessage('<strong>Listing Added To Wishlist!</strong> You can check the saved listing in your wishlist.', 'success');
 };
 
 
@@ -85,14 +88,14 @@ const loadCartItem = (item) => {
 const removeCartItem = async (event) => {
     const itemId = event.target.dataset.item;
 
-    const response = await fetch(`/remove-cart-item/${itemId}`)
+    const response = await fetch(`/remove-wishlist-listing/${itemId}`)
     const item = document.getElementById(`${itemId}`)
 
     const addToCartBtn = document.querySelector(`.add-to-cart[data-item="${itemId}"`);
     addToCartBtn.style.display = 'inline-block';
 
     const removeCartItemBtns = Array.from(document.querySelectorAll(`.remove-cart-item[data-item="${itemId}"`));
-    removeCartItemBtns.forEach(button => button.style.display = 'none');
+    removeCartItemBtns.forEach(button => { console.log(button); button.style.display = 'none'});
 
     item.remove();
 
@@ -103,7 +106,7 @@ const removeCartItem = async (event) => {
 
 
 const loadCart = async () => {
-    const response = await fetch(`/cart-json`);
+    const response = await fetch(`/wishlist-json`);
     let cart = await response.json();
     let totalPrice = 0;
 
@@ -130,13 +133,13 @@ const loadCart = async () => {
 
 
 const clearCart = async () => {
-    const response = await fetch('/clear-cart');
+    const response = await fetch('/clear-wishlist');
     while (cartItems.firstElementChild) {
         cartItems.firstElementChild.remove();
     }
 
     loadEmptyCart();
-    loadMessage('<bCart cleared</b> You can start adding items to your cart!', 'info');
+    loadMessage('<bWishlist cleared</b> You can start adding items to your wishlist!', 'info');
 
     addToCartBtns.forEach(button => button.style.display = 'inline-block');
     removeCartItemBtnsArray.forEach(button => button.style.display = 'none');

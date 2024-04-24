@@ -17,73 +17,73 @@ class User(AbstractUser):
         return self.username
     
 
-    def has_bought(self, item):
-        item = Post.objects.get(pk=item)
+    def has_reserved(self, item):
+        listing = Listing.objects.get(pk=item)
         try:
-            Purchase.objects.get(item=item, buyer=self)
+            Stay.objects.get(listing=listing, buyer=self)
         except:
             return False
         return True
 
 
     @property
-    def user_cart(self):
-        return self.cart
+    def user_wishlist(self):
+        return self.wishlist
 
 
-class Cart(models.Model):
-    user = models.OneToOneField(User, related_name='cart', on_delete=models.CASCADE, blank=False, null=False)
+class Wishlist(models.Model):
+    user = models.OneToOneField(User, related_name='wishlist', on_delete=models.CASCADE, blank=False, null=False)
 
 
     def __str__(self):
         return f"{self.user}'s cart"
     
 
-    def append(self, item):
-        if (CartItem.objects.filter(cart=self, item=item)):
+    def append(self, listing):
+        if (WishlistListing.objects.filter(wishlist=self, listing=listing)):
             return
         
-        CartItem(cart=self, item=item).save()
+        WishlistListing(wishlist=self, listing=listing).save()
 
 
-    def remove_from_cart(self, item):
-        cart_item = CartItem.objects.filter(cart=self, item=item)
+    def remove_from_wishlist(self, listing):
+        listing = WishlistListing.objects.filter(wishlist=self, listing=listing)
 
-        if cart_item:
-            cart_item.delete()
+        if listing:
+            listing.delete()
         else:
-            raise ValueError('Item is not in cart')
+            raise ValueError('Listing is not in wishlist')
         
 
-    def is_in_cart(self, item):
-        if CartItem.objects.filter(cart=self, item=item):
+    def is_in_wishlist(self, listing):
+        if WishlistListing.objects.filter(wishlist=self, listing=listing):
             return True  
         return False
 
     
-    def clear_cart(self):
-        for item in self.items.all():
-            item.delete()
+    def clear_wishlist(self):
+        for listing in self.listings.all():
+            listing.delete()
 
 
 @receiver(post_save, sender=User)
-def create_user_cart(sender, instance, created, **kwargs):
+def create_user_wishlist(sender, instance, created, **kwargs):
     if created:
-        Cart.objects.create(user=instance)
+        Wishlist.objects.create(user=instance)
         
 
-class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE, blank=False, null=False)
-    item = models.ForeignKey('Post', related_name='items', on_delete=models.CASCADE, blank=False, null=False)
+class WishlistListing(models.Model):
+    wishlist = models.ForeignKey(Wishlist, related_name='listings', on_delete=models.CASCADE, blank=False, null=False)
+    listing = models.ForeignKey('Listing', related_name='listings', on_delete=models.CASCADE, blank=False, null=False)
 
     
     def __str__(self):
-        return str(self.item)
+        return str(self.listing)
 
 
 class Category(models.Model):
     category = models.CharField(max_length=255, blank=False, null=False)
-    icon = models.CharField(max_length=20, blank=False, null=False) 
+    icon = models.CharField(max_length=50, blank=False, null=False) 
 
 
     def __str__(self):
@@ -102,7 +102,7 @@ class Category(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE, blank=False, null=False)
-    post = models.ForeignKey('Post', related_name='comments', on_delete=models.CASCADE, blank=False, null=False)
+    post = models.ForeignKey('Listing', related_name='comments', on_delete=models.CASCADE, blank=False, null=False)
     comment = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
 
@@ -135,9 +135,111 @@ class Comment(models.Model):
             comments_json[f'{comment.id}'] = render_to_string('comment.html', {'comment': comment, 'user': user})
 
         return comments_json
-        
 
-class Post(models.Model):
+
+class Listing(models.Model):
+    author = models.ForeignKey(User, related_name='listings', on_delete=models.CASCADE, blank=False, null=False)
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    location = models.CharField(max_length=255)
+    price = models.FloatField()
+    rating = models.FloatField(default=0)
+    attributes = models.JSONField(blank=True, null=True)
+    category = models.ForeignKey(Category, related_name='listings', on_delete=models.CASCADE, blank=True, null=True)
+    quantity = models.IntegerField(default=1)
+    stripe_id = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self):
+        return f"Title: {self.title}, Description: {self.description}, Date: {self.date}"
+    
+
+    def serialize(self):
+        return {
+            "id": f"{self.id}",
+            "author": self.author.username,
+            "title": self.title,
+            "description": self.description,
+            "price": self.price,
+            "attributes": self.attributes,
+            "images": [image.image.url for image in self.images.all()],
+            "date": {
+                "day": self.date.day,
+                "month": self.date.month,
+                "year": self.date.year
+            },
+            "attributes": self.attributes
+        }
+    
+
+    def set_rating(self, rating):
+        # Avoid ratings greater than 5 and lower than 0
+        if rating > 5 or rating < 0:
+            raise ValueError("Ratings can't be greather than 5 nor lower than 0")
+        
+        ratingSum = rating
+        ratings = self.ratings.all()    # All ratings except the current one
+
+        for rating in self.ratings.all():
+            ratingSum += rating.rating
+
+        # Add 1 to len(ratings) because current rating is not being counted
+        self.rating = ratingSum / (len(ratings) + 1) 
+        self.save()
+
+    
+    @staticmethod
+    def render_posts_json(posts, user):
+        posts_json = {}
+
+        for post in posts:
+            if user.wishlist.is_in_wishlist(post):
+                post.is_in_wishlist = True
+            posts_json[f'{post.id}'] = render_to_string('post.html', {'post': post})
+
+        return posts_json     
+
+
+class Rating(models.Model):
+    user = models.ForeignKey(User, related_name='ratings', blank=False, null=False, on_delete=models.CASCADE)
+    listing = models.ForeignKey(Listing, related_name='ratings', blank=False, null=False, on_delete=models.CASCADE)
+    rating = models.FloatField()
+    date = models.DateTimeField(auto_now_add=True)
+
+    
+    def __str__(self):
+        return f'{self.user} rated {self.listing} a {self.rating}/5 at ${self.date}'
+
+
+class ListingImage(models.Model):
+    listing = models.ForeignKey(Listing, related_name="images", blank=False, null=False, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="posts/")
+
+
+    def __str__(self):
+        return f"{self.post} image"
+    
+
+class Stay(models.Model):
+    buyer = models.ForeignKey(User, related_name='stays', blank=False, null=False, on_delete=models.CASCADE)
+    listing = models.ForeignKey(Listing, related_name='stays', blank=False, null=False, on_delete=models.CASCADE)
+    check_in = models.DateField()
+    check_out = models.DateField()
+    date = models.DateTimeField(auto_now_add=True)
+    adults = models.IntegerField(default=1)
+    children = models.IntegerField(default=0)
+    infants = models.IntegerField(default=0)
+    pets = models.IntegerField(default=0)
+    nights = models.IntegerField(blank=False, null=False)
+    price = models.IntegerField(blank=False, null=False)
+
+
+    def __str__(self):
+        return f"Dates: {self.check_in}-{self.check_out} | Guests: 2 | Price Details {self.listing.price} x {self.nights} nights | Total (USD) ${self.price}"
+
+
+"""class Post(models.Model):
     author = models.ForeignKey(User, related_name='posts', on_delete=models.CASCADE, blank=False, null=False)
     title = models.CharField(max_length=255)
     description = models.TextField()
@@ -197,36 +299,4 @@ class Post(models.Model):
                 post.is_in_cart = True
             posts_json[f'{post.id}'] = render_to_string('post.html', {'post': post})
 
-        return posts_json
-
-
-class Rating(models.Model):
-    user = models.ForeignKey(User, related_name='ratings', blank=False, null=False, on_delete=models.CASCADE)
-    item = models.ForeignKey(Post, related_name='ratings', blank=False, null=False, on_delete=models.CASCADE)
-    rating = models.FloatField()
-    date = models.DateTimeField(auto_now_add=True)
-
-    
-    def __str__(self):
-        return f'{self.user} rated {self.item} a {self.rating}/5 at ${self.date}'
-
-
-class PostImage(models.Model):
-    post = models.ForeignKey(Post, related_name="images", blank=False, null=False, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="posts/")
-
-
-    def __str__(self):
-        return f"{self.post} image"
-    
-
-class Purchase(models.Model):
-    buyer = models.ForeignKey(User, related_name='purchases', blank=False, null=False, on_delete=models.CASCADE)
-    item = models.ForeignKey(Post, related_name='purchases', blank=False, null=False, on_delete=models.CASCADE)
-    date = models.DateTimeField(auto_now_add=True)
-    quantity = models.IntegerField()
-    price = models.IntegerField()
-
-
-    def __str__(self):
-        return f"{self.buyer} bought {self.quantity} {self.item} at {self.date} for {self.price}."
+        return posts_json"""

@@ -13,6 +13,7 @@ const postsContainer = document.querySelector('.posts-container');
 const selectOrderOption = document.querySelector('select[name="select-order"]');
 
 const searchPostInput = document.getElementById('search-post');
+let posts = Array.from(postsContainer.querySelectorAll('.post-widget'));
 
 let posts_page = 1;
 let comments_page = 1;
@@ -26,7 +27,6 @@ const username = url.pathname.split('/')[2];
 
 const searchPosts = () => {
     const query = searchPostInput.value.toUpperCase();
-
     const results = posts.filter(post => {
         let postTitle = post.querySelector('.title').innerText.toUpperCase();
         let postDescription = post.querySelector('.description').innerText.toUpperCase();
@@ -42,7 +42,6 @@ const searchPosts = () => {
 
 
 const orderPosts = (value) => {
-    let posts = Array.from(postsContainer.querySelectorAll('.post-widget'));
     switch (value) {
         case 'date':
             posts.sort((a, b) => {

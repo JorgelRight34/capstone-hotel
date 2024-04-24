@@ -2,7 +2,7 @@
     <div class="col p-0 post-image-col">
         <div class="cart-buttons">
             <div class="white-circle shadow-sm">
-                {% if post.is_in_cart %}
+                {% if post.is_in_wishlist %}
                     <i class="fa-regular fa-heart add-to-cart" data-item="{{ post.id }}" style="display: none;"></i>
                     <i class="fa-solid fa-heart remove-cart-item" data-item="{{ post.id }}"></i>
                 {% else %}

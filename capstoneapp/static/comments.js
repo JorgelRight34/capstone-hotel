@@ -6,6 +6,7 @@ const deleteCommentButtons = Array.from(document.querySelectorAll('.delete-comme
 
 const deleteComment = async (event) => {
     const result = confirm('Are you sure you want to delete this comment?')
+    console.log(event.target)
     if (result) {
         const commentId = event.target.dataset.comment;
         const comment = document.querySelector(`#comment-${commentId}`);

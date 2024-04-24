@@ -10,9 +10,10 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonRespons
 from django.shortcuts import get_object_or_404,  render, redirect
 from django.urls import reverse
 from django.template.loader import render_to_string
+from datetime import datetime
 
 
-from .models import User, Post, PostImage, Purchase, Comment, Category, Rating
+from .models import User, Listing, ListingImage, Stay, Comment, Category, Rating
 
 
 ITEMS_PER_PAGE = 10
@@ -26,7 +27,7 @@ def index(request):
     page = request.GET.get('page')
 
     # Paginator
-    posts = Paginator(Post.objects.all(), POSTS_PER_PAGE)
+    posts = Paginator(Listing.objects.all(), POSTS_PER_PAGE)
 
     try:
         posts = posts.page(page)
@@ -38,8 +39,8 @@ def index(request):
     # Check if posts are in cart only if user is authenticated
     if request.user.is_authenticated:
         for post in posts:
-            if request.user.cart.is_in_cart(post.id):
-                post.is_in_cart = True
+            if request.user.wishlist.is_in_wishlist(post.id):
+                post.is_in_wishlist = True
     
 
     categories = Category.objects.all()
@@ -73,66 +74,107 @@ def index(request):
 
 
 @login_required
-def add_to_cart(request, item):
-    item = get_object_or_404(Post, pk=item)
-    request.user.user_cart.append(item)
+def add_to_wishlist(request, listing):
+    listing = get_object_or_404(Listing, pk=listing)
+    request.user.wishlist.append(listing)
 
-    return JsonResponse(item.serialize())
+    return JsonResponse(listing.serialize())
 
 
-def buy_item(request, item):
-    item = get_object_or_404(Post, pk=item)
+def reserve(request, listing):
+    listing = get_object_or_404(Listing, pk=listing)
+    # Get guests
+    adults = request.GET.get('adults') or 1
+    children = request.GET.get('children') or 0
+    infants = request.GET.get('infants') or 0
+    pets = request.GET.get('pets') or 0
+
+    # Get check in and check out
+    check_in =  datetime.strptime(request.GET['check-in'], '%Y-%m-%d').date()
+    check_out = datetime.strptime(request.GET['check-out'], '%Y-%m-%d').date()
+    nights = (check_out - check_in).days
+
+    details = {'adults': adults, 
+               'children': children, 
+               'infants': infants, 
+               'pets': pets, 
+               'nights': nights, 
+               'total': listing.price * nights,
+               'check_in': request.GET['check-in'],
+               'check_out': request.GET['check_out']
+            }
+
     if request.method == 'POST':
-        quantity = int(request.POST['quantity'])
+        # Get guests
+        adults = request.POST.get('adults') or 1
+        children = request.POST.get('children') or 0
+        infants = request.POST.get('infants') or 0
+        pets = request.POST.get('pets') or 0
+
+        check_in =  datetime.strptime(request.POST['check-in'], '%Y-%m-%d').date()
+        check_out = datetime.strptime(request.POST['check-out'], '%Y-%m-%d').date()
+        print("check_in", check_in)
+        print("check_out", check_out)
+        nights = (check_out - check_in).days
+        print("nights: ", nights)
         try:
-            amount = item.price * quantity
+            amount = listing.price * nights
             # Create a charge
             charge = stripe.Charge.create(
                 amount= round(amount * 100), # amount must be in cents
                 currency='usd',
-                description=item.description,
+                description=listing.description,
                 source=request.POST['stripeToken'],
             )
 
-            # Create a purchase
-            purchase = Purchase(buyer=request.user, item=item, quantity=quantity, price=amount)
-            purchase.save()
+            # Create a stay
+            stay = Stay(buyer=request.user, 
+                        listing=listing, 
+                        adults=adults,
+                        children=children,
+                        infants=infants,
+                        pets=pets,
+                        nights=nights, 
+                        price=amount, 
+                        check_in=check_in, 
+                        check_out=check_out,
 
-            # Update items available
-            item.quantity = item.quantity - quantity
-            item.save()
+                    )
+            print(stay)
+            stay.save()
 
             return JsonResponse({"Worked": "True"})
         except:
             return JsonResponse({"Worked": "False"})
 
-    return render(request, 'buy.html', {
-        'item': item,
-        'stripe_key': settings.STRIPE_TEST_PUBLISHABLE_KEY
+    return render(request, 'reserve.html', {
+        'listing': listing,
+        'stripe_key': settings.STRIPE_TEST_PUBLISHABLE_KEY,
+        'details': details
     })
 
 
 def category_posts(request, category):
     category = get_object_or_404(Category, pk=category)
     posts = {}
-    for post in category.posts.all():
-        if request.user.cart.is_in_cart(post.id):
-            post.is_in_cart = True
+    for post in category.listings.all():
+        if request.user.wishlist.is_in_wishlist(post.id):
+            post.is_in_wishlist = True
         posts[f'{post.id}'] = render_to_string('post.html', {'post': post})
 
     return JsonResponse(posts)
 
 
-def cart_json(request):
-    return JsonResponse([item.item.serialize() for item in request.user.user_cart.items.all()], safe=False)
+def wishlist_json(request):
+    return JsonResponse([listing.listing.serialize() for listing in request.user.wishlist.listings.all()], safe=False)
 
 
 @login_required
-def cart(request):
-    cart = [item.item for item in request.user.user_cart.items.all()]
-    for item in cart:
-        item.is_in_cart = request.user.user_cart.is_in_cart(item)
-    return render(request, 'cart.html', {'cart': cart})
+def wishlist(request):
+    wishlist = [listing.listing for listing in request.user.wishlist.listings.all()]
+    for listing in wishlist:
+        listing.is_in_wishlist = request.user.wishlist.is_in_wishlist(listing)
+    return render(request, 'cart.html', {'cart': wishlist})
 
 
 def categories(request):
@@ -142,10 +184,10 @@ def categories(request):
 @login_required
 def comment(request, post):
     if request.method == 'POST':
-        post = get_object_or_404(Post, pk=post)
+        post = get_object_or_404(Listing, pk=post)
 
         # Allow only buyers to comment
-        if not request.user.has_bought(post.id):
+        if not request.user.has_reserved(post.id):
             return HttpResponse(status=405)
         
         # Create comment
@@ -156,14 +198,14 @@ def comment(request, post):
     
 
 @login_required
-def clear_cart(request):
-    request.user.user_cart.clear_cart()
+def clear_wishlist(request):
+    request.user.wishlist.clear_cart()
     return HttpResponse(status=204)
 
 
 @login_required
 def delete_post(request, post):
-    post = get_object_or_404(Post, pk=post)
+    post = get_object_or_404(Listing, pk=post)
 
     # Avoid others user to delete others users posts
     if request.user == post.author:
@@ -210,12 +252,12 @@ def edit_profile(request):
 def new_post(request):
     if request.method == "POST":
         try:
-            author, title = request.user, request.POST['title']
+            author, title, location = request.user, request.POST['title'], request.POST['location']
             description, price, category = request.POST['description'], request.POST['price'], request.POST['category']
         except:
             return redirect('/#new_post')
         
-        post = Post()
+        post = Listing()    
         category = get_object_or_404(Category, pk=category)
         post.author, post.title, post.description, post.price, post.category = author, title, description, price, category
 
@@ -246,7 +288,6 @@ def new_post(request):
             name=post.title,
             description=post.description,
             type='good',
-            attributes = ['size', 'color'],
             metadata=json_dict
         )
 
@@ -264,7 +305,7 @@ def new_post(request):
 
         # Get images
         for image in request.FILES.getlist('image'):
-            post_image = PostImage(post=post, image=image)
+            post_image = ListingImage(listing=post, image=image)
             post_image.save()
 
 
@@ -279,7 +320,7 @@ def profile(request, username):
     # Get page
     page = request.GET.get('items_page')
     
-    posts = Paginator(user.posts.all().order_by('-date'), 6)
+    posts = Paginator(user.listings.all().order_by('-date'), 6)
     try:
         posts = posts.page(page)
     except PageNotAnInteger:
@@ -298,7 +339,7 @@ def profile(request, username):
 
     # Check if post is in cart
     for post in posts:
-        post.is_in_cart = request.user.user_cart.is_in_cart(post)
+        post.is_in_wishlist = request.user.wishlist.is_in_wishlist(post)
 
     return render(request, "profile.html", {
         "profile_user": user,
@@ -308,7 +349,7 @@ def profile(request, username):
 
 
 def post_details(request, post):
-    post = get_object_or_404(Post, pk=post)
+    post = get_object_or_404(Listing, pk=post)
     attributes = post.attributes if post.attributes else {}
 
     comments = Paginator(post.comments.all().order_by('-date'), ITEMS_PER_PAGE)
@@ -322,44 +363,50 @@ def post_details(request, post):
         comments = comments.page(comments.num_pages)
 
     if request.user.is_authenticated:
-        post.is_in_cart = request.user.user_cart.is_in_cart(post)
+        post.is_in_wishlist = request.user.wishlist.is_in_wishlist(post)
+
+    
+    if (request.user.is_authenticated):
+        has_reserved = request.user.has_reserved(post.id)
+    else:
+        has_reserved = False
 
     return render(request, 'post_details.html', {
         'post': post,
         'attributes': attributes,
         'comments': comments,
         'stripe_key': settings.STRIPE_TEST_PUBLISHABLE_KEY,
-        'has_bought': request.user.has_bought(post.id)
+        'has_reserved': has_reserved
     })
 
 
 def post_json(request, post):
-    post = get_object_or_404(Post, pk=post)
+    post = get_object_or_404(Listing, pk=post)
     return JsonResponse(post.serialize())
 
 
 @login_required
-def remove_cart_item(request, item):
-    item = get_object_or_404(Post, pk=item)
-    request.user.user_cart.remove_from_cart(item)
+def remove_wishlist_listing(request, listing):
+    listing = get_object_or_404(Listing, pk=listing)
+    request.user.wishlist.remove_from_wishlist(listing)
 
     return HttpResponse(status=204)
 
 
-def rate_item(request, item):
+def rate(request, listing):
     if request.method == 'POST':
-        item = get_object_or_404(Post, pk=item)
+        listing = get_object_or_404(Listing, pk=listing)
 
         # Avoid letting a user who hasn't bought the item to rate
-        if not request.user.has_bought(item.id):
+        if not request.user.has_reserved(listing.id):
             return HttpResponse(status=405)
         
         # Create rating
-        rating = Rating(user=request.user, item=item, rating=request.POST['rating'])
+        rating = Rating(user=request.user, listing=listing, rating=request.POST['rating'])
         rating.save()
 
         # Set new rating for item
-        item.set_rating(float(rating.rating))
+        listing.set_rating(float(rating.rating))
 
         return HttpResponse(status=204)
 
@@ -367,7 +414,7 @@ def rate_item(request, item):
 @login_required
 def update_post(request):
     if request.method == "POST":
-        post = get_object_or_404(Post, pk=request.POST['post'])
+        post = get_object_or_404(Listing, pk=request.POST['post'])
         post.title, post.description, post.price = request.POST['title'], request.POST['description'], request.POST['price']
 
         # Get fields values
@@ -406,7 +453,7 @@ def user_posts(request, username):
     except EmptyPage:
         return HttpResponse(status=404)
 
-    return JsonResponse(Post.render_posts_json(posts, request.user))
+    return JsonResponse(Listing.render_posts_json(posts, request.user))
 
 
 def user_comments(request, username):
@@ -486,13 +533,13 @@ def register_view(request):
 def search_posts(request):
     query = request.GET.get('q')
     category = request.GET.get('category')
-    posts = Post.objects.all()
+    posts = Listing.objects.all()
 
     if category:
         category = Category.objects.get(category=category)
 
     if (query):
-        posts = Post.objects.filter(Q(title__icontains=query) | Q(description__icontains=query), category=category)
+        posts = Listing.objects.filter(Q(title__icontains=query) | Q(description__icontains=query), category=category)
 
     # Paginator
     posts = Paginator(posts, POSTS_PER_PAGE)
@@ -505,7 +552,7 @@ def search_posts(request):
     except PageNotAnInteger:
         posts = posts.page(1)
     except EmptyPage:
-        return Http404
+        return HttpResponse(status=404)
 
 
-    return JsonResponse(Post.render_posts_json(posts, request.user))
+    return JsonResponse(Listing.render_posts_json(posts, request.user))

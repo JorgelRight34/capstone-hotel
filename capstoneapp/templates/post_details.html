@@ -46,18 +46,21 @@
                 </div> 
             {% endif %}
             <div class="p-3 d-flex justify-content-center align-items-center rating-stars" id="rating-stars" data-item="{{ post.id }}">
-                <i class="fa-regular fa-star mx-1 rating-star fs-1" id="1"></i>
-                <i class="fa-regular fa-star mx-1 fs-1" id="2"></i>
-                <i class="fa-regular fa-star mx-1 fs-1" id="3"></i>
-                <i class="fa-regular fa-star mx-1 fs-1" id="4"></i>
-                <i class="fa-regular fa-star mx-1 fs-1" id="5"></i>
-                <form class="d-none" method="post" id="rating-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="rating" value=""/>
-                </form>
+                {% if not has_reserved %}
+                    <i class="fa-regular fa-star mx-1 rating-star fs-1" id="1"></i>
+                    <i class="fa-regular fa-star mx-1 fs-1" id="2"></i>
+                    <i class="fa-regular fa-star mx-1 fs-1" id="3"></i>
+                    <i class="fa-regular fa-star mx-1 fs-1" id="4"></i>
+                    <i class="fa-regular fa-star mx-1 fs-1" id="5"></i>
+                    <form class="d-none" method="post" id="rating-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="rating" value=""/>
+                    </form>
+                {% endif %}
             </div>    
         </div>
         <div class="col p-3">
+            <!-- Update Form -->
             <form action="{% url 'update_post' %}" method="post" id="update-post-form" style="display: none;">
                 {% csrf_token %}
                 <div class="mb-3" id="post-details-header">
@@ -114,17 +117,67 @@
                 </div>
                 <input type="hidden" name="post" value="{{ post.id }}"/>
             </form>
+            
+            <!-- Info -->
             <div id="info">
-                <div class="mb-3" id="post-details-header">
-                    <h1 class="post-details-title" id="post-title">{{ post.title }}</h1> 
-                    <button class="mx-3 btn btn-primary">
-                        <span class="fa-solid fa-pencil edit-post"></span>
-                    </button>
-                    <button class="mx-3 btn btn-danger">
-                        <a class="text-decoration-none text-dark" href="{% url 'delete_post' post.id %}">
-                            <span class="fa-solid fa-trash"></span>
-                        </a>
-                    </button>
+                <div class="row mb-3" id="post-details-header">
+                    <div class="col-9">
+                        <h4 class="post-details-title" id="post-title">{{ post.title }}</h4> 
+                    </div>
+
+                    <div class="col-3 d-flex">
+                        <!-- Update and delete options-->
+                        <div class="dropdown mx-3">
+                            <div class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16">
+                                    <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
+                                </svg>
+                            </div>
+                            <ul class="dropdown-menu">
+                            <li>
+                                <span class="dropdown-item edit-post">
+                                    Edit Post
+                                </span>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'delete_post' post.id %}">
+                                    Delete
+                                </a>
+                            </li>
+                            </ul>
+                        </div>
+
+                        <!-- Wishlist -->
+                        {% if post.is_in_wishlist %}
+                            <span class="add-to-cart" data-item="{{ post.id }}" style="display: none;">
+                                <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
+                                Save
+                            </span>
+                            <span class="remove-cart-item" data-item="{{ post.id }}">
+                                <i class="fa-solid fa-heart" data-item="{{ post.id }}"></i>
+                                Unsave
+                            </span>
+                        {% elif user.is_authenticated %}
+                            <span class="add-to-cart" data-item="{{ post.id }}">
+                                <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
+                                Save
+                            </span>
+                            <span class="remove-cart-item" data-item="{{ post.id }}" style="display: none;"> 
+                                <i class="fa-solid fa-heart" data-item="{{ post.id }}"></i>
+                                Unsave
+                            </span>
+                        {% else %}
+                            <a class="text-decoration-none text-dark" href="{% url 'login' %}?next=/post/{{ post.id }}">
+                                <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
+                                Save
+                            </a>
+                            <a class="text-decoration-none text-dark" href="{% url 'login' %}?next=/post/{{ post.id }}" style="display: none;">
+                                <i class="fa-solid fa-heart"></i>
+                                Unsave
+                            </a>
+                        {% endif %}
+                    </div>
+        
                 </div>
                 <div class="mb-3">
                     <div class="wallpaper p-3 d-flex align-items-center">
@@ -138,9 +191,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="mb-3">
-                    <h2>US $<span id="post-price">{{ post.price }}</span></h2>
                 </div>
                 <div class="mb-3">
                     <span id="post-description">{{ post.description }}</span>
@@ -166,33 +216,140 @@
                     {% endif %}
                 </div>
                 <div id="post-options">
-                    <form action="{% url 'buy_item' post.id %}" method="post" class="d-inline-block">
-                        <div class="mb-3">
-                            Quantity: <input name="quantity" class="form-control d-inline-block" type="number" value="{{ post.quantity }}"/> <span id="quantity">{{ post.quantity }}</span> available
+                    <!-- Payment form -->
+                    <form action="{% url 'reserve' post.id %}" method="get" class="mb-3" id="reserve-form" data-listing="{{ post.id }}">
+                        {% csrf_token %}
+                        <div class="container bg-white rounded border">
+                            <!-- Price -->
+                            <div class="mb-3 d-flex align-items-center p-1">
+                                <h3>${{ post.price }}</h3> <span class="text-muted mx-3">night</span>
+                            </div>
+                            <!-- Check In & Check Out -->
+                            <div class="mb-3 d-flex">
+                                <div class="p-1 w-50">
+                                    <div class="form-floating">
+                                        <input type="date" class="form-control" id="check-in" name="check-in" required>
+                                        <label for="check-in">Check In</label>
+                                    </div>
+                                </div>
+                                <div class="p-1 w-50">
+                                    <div class="form-floating">
+                                        <input type="date" class="form-control" id="check-out" name="check-out" required>
+                                        <label for="check-out">Check Out</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Guests -->
+                            <div class="mb-3 p-1">
+                                <div class="dropdown">
+                                    <!-- Trigger -->   
+                                    <div class="form-floating" type="button" id="guests" aria-expanded="false">
+                                        <span class="form-control" id="guests-text">1 Adult</span>
+                                        <label for="guests-text">Guests</label>
+                                    </div>               
+                                    <!-- Dropdown -->
+                                    <ul class="dropdown-menu w-100" aria-labelledby="guests" id="guests-dropdown-form" style="display: none;">
+                                        <!-- Adults -->
+                                        <li>
+                                            <div class="dropdown-item">
+                                                <div class="row">
+                                                    <input type="hidden" name="adults" required>
+                                                    <!-- Label -->
+                                                    <div class="col-9">
+                                                        <h6>Adults</h6>
+                                                        <span class="text-muted">Age 13+</span>
+                                                    </div>
+                                                    <!-- Input Number -->
+                                                    <div class="col-3 d-flex align-items-center">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="white-circle border shadow-sm remove-guests" data-guests-type="adults">
+                                                                <i class="fa-solid fa-minus" data-guests-type="adults"></i>
+                                                            </div>
+                                                            <span class="mx-3" id="adults-number">
+                                                                1
+                                                            </span>
+                                                            <div class="white-circle border shadow-sm add-guests" data-guests-type="adults">
+                                                                <i class="fa-solid fa-plus" data-guests-type="adults"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <!-- Children -->
+                                        <li>
+                                            <div class="dropdown-item">
+                                                <div class="row">
+                                                    <input type="hidden" name="children">
+                                                    <!-- Label -->
+                                                    <div class="col-9">
+                                                        <h6>Children</h6>
+                                                        <span class="text-muted">Ages 2-12</span>
+                                                    </div>
+                                                    <!-- Input Number -->
+                                                    <div class="col-3 d-flex align-items-center">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="white-circle border shadow-sm remove-guests" data-guests-type="children">
+                                                                <i class="fa-solid fa-minus" data-guests-type="children"></i>
+                                                            </div>
+                                                            <span class="mx-3" id="children-number">
+                                                                0
+                                                            </span>
+                                                            <div class="white-circle border shadow-sm add-guests" data-guests-type="children">
+                                                                <i class="fa-solid fa-plus" data-guests-type="children"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <!-- Infants -->
+                                        <li>
+                                            <div class="dropdown-item">
+                                                <div class="row">
+                                                    <input type="hidden" name="infants">
+                                                    <!-- Label -->
+                                                    <div class="col-9">
+                                                        <h6>Infants</h6>
+                                                        <span class="text-muted">Under 2</span>
+                                                    </div>
+                                                    <!-- Input Number -->
+                                                    <div class="col-3 d-flex align-items-center">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="white-circle border shadow-sm remove-guests" data-guests-type="infants">
+                                                                <i class="fa-solid fa-minus" data-guests-type="infants"></i>
+                                                            </div>
+                                                            <span class="mx-3" id="infants-number">
+                                                                0
+                                                            </span>
+                                                            <div class="white-circle border shadow-sm add-guests" data-guests-type="infants">
+                                                                <i class="fa-solid fa-plus" data-guests-type="infants"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>      
+                            <div class="mb-3 p-1">
+                                <input type="button" id="reserve-button" class="btn btn-success w-100" value="Reserve">
+                            </div>
+                            <!-- Stripe
+                            <div class="p-1 mb-3 d-none">
+                                <i class="fa-brands fa-cc-stripe"></i>
+                                <script src="https://checkout.stripe.com/checkout.js" class="stripe-button" id="stripe-button"
+                                data-key="{{ stripe_key }}"
+                                data-description="{{ post.title }}"
+                                data-amount="{{ post.price }}"
+                                data-label = "Reserve"
+                                data-locale="auto">
+                                </script>
+                            </div> 
+                        --> 
                         </div>
-                        {% if post.quantity > 0 %}
-                            {% csrf_token %}
-                            <script src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-                            data-key="{{ stripe_key }}"
-                            data-description="{{ post.description }}"
-                            data-amount="{{ post.price }}"
-                            data-label = "Buy Now!"
-                            data-locale="auto">
-                            </script>
-                        {% else %}
-                            <button class="stripe-button" disabled>Buy Now!</button>
-                        {% endif %}
                     </form>
-                    {% if post.is_in_cart %}
-                        <button class="btn btn-outline-success mx-3 add-to-cart" data-item="{{ post.id }}" style="display: none;">Add To Cart</button>
-                        <button class="btn btn-outline-success mx-3 remove-cart-item" data-item="{{ post.id }}">Remove From Cart</button>
-                    {% elif user.is_authenticated %}
-                        <button class="btn btn-outline-success mx-3 add-to-cart" data-item="{{ post.id }}">Add To Cart</button>
-                        <button class="btn btn-outline-success mx-3 remove-cart-item" data-item="{{ post.id }}" style="display: none;">Remove From Cart</button>
-                    {% else %}
-                        <a class="btn btn-outline-success mx-3" href="{% url 'login' %}?next=/post/{{ post.id }}">Add To Cart</a>
-                        <a class="btn btn-outline-success mx-3" href="{% url 'login' %}?next=/post/{{ post.id }}" style="display: none;">Remove From Cart</a>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -201,7 +358,7 @@
             <div class="mb-3">
                 <h2>Comments</h2>
             </div>
-            {% if user.is_authenticated and has_bought %}
+            {% if user.is_authenticated and has_reserved %}
                 <div class="p-3 container border">
                     <div>
                         <img src="{{ user.profile_pic.url }}" class="profile-pic">
@@ -228,4 +385,5 @@
 <script src="{% static 'comments.js' %}"></script>
 <script src="{% static 'rating.js' %}"></script>
 <script src="{% static 'wallpapers.js' %}"></script>
+<script src="{% static 'reserve.js' %}"></script>
 {% endblock %}
