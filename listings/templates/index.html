@@ -1,0 +1,109 @@
+{% extends '_base.html' %}
+
+{% load static %}
+
+{% block extended_navbar %}
+<div class="bg-white rounded p-3 mb-3 m-0 w-100 row">
+    <!-- Categories -->
+    <div class="col-md-9">
+        <div class="categories-m">
+            <!-- Categories carousel for medium and large devices -->
+            <div id="categoriesCarousel" class="carousel carousel-dark slide row categories-m" data-bs-ride="carousel" data-bs-interval="false">
+                <div class="col-3 col-md-3 col-sm-3 col-lg-3 carousel-button">
+                    <button class="carousel-control-prev" type="button" data-bs-target="#categoriesCarousel" data-bs-slide="prev">
+                        <i class="fas fa-chevron-left text-dark" aria-hidden="true"></i>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                </div>
+                <div class="col-md-6 col-sm-6">
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <div class="row d-flex justify-content-center">
+                                {% for category in categories.0 %}
+                                <a href="#{{ category }}" class="category-link" data-category="{{ category }}">
+                                    <div class="d-flex justify-content-center align-items-center" data-category="{{ category }}">
+                                        <span class="{{ category.icon }}" data-category="{{ category }}"></span>
+                                    </div>
+                                    <div class="d-flex justify-content-center align-items-center" data-category="{{ category }}">
+                                        {{ category }}
+                                    </div>
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% for list in categories|slice:"1:" %}
+                        <div class="carousel-item">
+                            <div class="row d-flex justify-content-center">
+                                {% for category in list %}
+                                <a href="#{{ category }}" class="category-link" data-category="{{ category }}">                               
+                                    <div class="d-flex justify-content-center align-items-center" data-category="{{ category }}">
+                                        <span class="{{ category.icon }}" data-category="{{ category }}"></span>
+                                    </div>
+                                    <div class="d-flex justify-content-center align-items-center" data-category="{{ category }}">
+                                        {{ category }}
+                                    </div>                                  
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-md-3 carousel-button">
+                    <button class="carousel-control-next" type="button" data-bs-target="#categoriesCarousel" data-bs-slide="next">
+                        <i class="fas fa-chevron-right text-dark" aria-hidden="true"></i>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories for mobile devices -->
+        <div class="categories-sm mb-3">
+            {% for category in categories %}
+            {% for category in category %}
+            <a href="#{{ category }}" class="category-link" data-category="{{ category }}">                               
+                <div class="d-flex justify-content-center align-items-center" data-category="{{ category }}">
+                    <span class="{{ category.icon }}" data-category="{{ category }}"></span>
+                </div>
+                <div class="d-flex justify-content-center align-items-center" data-category="{{ category }}">
+                    {{ category }}
+                </div>                                  
+            </a>
+            {% endfor %}
+            {% endfor %}
+            <!-- Indicates current category -->
+            <input type="hidden" name="current-category" id="current-category">
+        </div>
+    </div>
+        
+    <!-- Filters -->
+    <div class="col-md-3">
+        <div class="select-posts-order-container">
+            <select class="form-select" name="select-order">
+                <option>Order by</option>
+                <option value="price">Lesser price to greater price</option>
+                <option value="date">Date</option>
+                <option value="category">Category</option>
+            </select>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-3">
+    <div class="container bg-white p-3 rounded">
+        <div class="posts-container">
+            {% for post in posts %}
+                {% include 'post.html' %}
+            {% empty %}
+                Posts
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/profile.js' %}"></script>
+<script src="{% static 'js/categories.js' %}"></script>
+<script src="{% static 'js/search_posts.js' %}"></script>
+{% endblock %}

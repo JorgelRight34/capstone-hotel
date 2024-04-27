@@ -1,0 +1,199 @@
+{% extends '_base.html' %}
+
+{% load static %}
+
+{% block title %}Stay Details{% endblock title %}
+
+{% block body %}
+<div class="row p-3 w-100">
+    <!-- First Column -->
+    <div class="col-6">
+        <div class="container bg-white w-75 p-3 border rounded">
+            <h3>Request to Book</h3>
+            <form action="{% url 'reserve' listing.id %}" method="post" id="reserve-form">
+                {% csrf_token %}
+                <div class="row mb-3">
+                    <h6>Your Trip</h6>
+                </div>
+                <div class="row mb-3">
+                    <!-- Check In & Check Out -->
+                    <div class="mb-3">
+                        <h6>Dates</h6>
+                        <div class="d-flex">
+                            <div class="p-1 w-50">
+                                <div class="form-floating">
+                                    <input type="date" class="form-control" id="check-in" name="check-in" value="{{ details.check_in }}" required>
+                                    <label for="check-in">Check In</label>
+                                </div>
+                            </div>
+                            <div class="p-1 w-50">
+                                <div class="form-floating">
+                                    <input type="date" class="form-control" id="check-out" name="check-out" value="{{ details.check_out }}" required>
+                                    <label for="check-out">Check Out</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Guests -->
+                    <div class="mb-3">
+                        <h6>Guests</h6>
+                        <div class="dropdown">
+                            <!-- Trigger -->   
+                            <div class="form-floating" type="button" id="guests" aria-expanded="false">
+                                <span class="form-control" id="guests-text">1 Adult</span>
+                                <label for="guests-text">Guests</label>
+                            </div>               
+                            <!-- Dropdown -->
+                            <ul class="dropdown-menu w-100" aria-labelledby="guests" id="guests-dropdown-form" style="display: none;">
+                                <!-- Adults -->
+                                <li>
+                                    <div class="dropdown-item">
+                                        <div class="row">
+                                            <input type="hidden" name="adults" value="{{ details.adults }}" required>
+                                            <!-- Label -->
+                                            <div class="col-9">
+                                                <h6>Adults</h6>
+                                                <span class="text-muted">Age 13+</span>
+                                            </div>
+                                            <!-- Input Number -->
+                                            <div class="col-3 d-flex align-items-center">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="white-circle border shadow-sm remove-guests" data-guests-type="adults">
+                                                        <i class="fa-solid fa-minus" data-guests-type="adults"></i>
+                                                    </div>
+                                                    <span class="mx-3" id="adults-number">
+                                                        1
+                                                    </span>
+                                                    <div class="white-circle border shadow-sm add-guests" data-guests-type="adults">
+                                                        <i class="fa-solid fa-plus" data-guests-type="adults"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <!-- Children -->
+                                <li>
+                                    <div class="dropdown-item">
+                                        <div class="row">
+                                            <input type="hidden" name="children" value="{{ details.children }}">
+                                            <!-- Label -->
+                                            <div class="col-9">
+                                                <h6>Children</h6>
+                                                <span class="text-muted">Ages 2-12</span>
+                                            </div>
+                                            <!-- Input Number -->
+                                            <div class="col-3 d-flex align-items-center">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="white-circle border shadow-sm remove-guests" data-guests-type="children">
+                                                        <i class="fa-solid fa-minus" data-guests-type="children"></i>
+                                                    </div>
+                                                    <span class="mx-3" id="children-number">
+                                                        0
+                                                    </span>
+                                                    <div class="white-circle border shadow-sm add-guests" data-guests-type="children">
+                                                        <i class="fa-solid fa-plus" data-guests-type="children"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <!-- Infants -->
+                                <li>
+                                    <div class="dropdown-item">
+                                        <div class="row">
+                                            <input type="hidden" name="infants">
+                                            <!-- Label -->
+                                            <div class="col-9">
+                                                <h6>Infants</h6>
+                                                <span class="text-muted">Under 2</span>
+                                            </div>
+                                            <!-- Input Number -->
+                                            <div class="col-3 d-flex align-items-center">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="white-circle border shadow-sm remove-guests" data-guests-type="infants">
+                                                        <i class="fa-solid fa-minus" data-guests-type="infants"></i>
+                                                    </div>
+                                                    <span class="mx-3" id="infants-number">
+                                                        0
+                                                    </span>
+                                                    <div class="white-circle border shadow-sm add-guests" data-guests-type="infants">
+                                                        <i class="fa-solid fa-plus" data-guests-type="infants"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-1 mb-3">
+                    <i class="fa-brands fa-cc-stripe"></i>
+                    <script src="https://checkout.stripe.com/checkout.js" class="stripe-button" id="reserve-button"
+                    data-key="{{ stripe_key }}"
+                    data-description="{{ listing.title }}"
+                    data-amount="{{ listing.price }}"
+                    data-label = "Reserve"
+                    data-locale="auto">
+                    </script>
+                </div> 
+            </form>
+           
+        </div>
+    </div>
+
+    <!-- Second Column -->
+    <div class="col-6">
+        <div class="container border rounded bg-white w-75 p-3">
+            <div class="row">
+                <div class="col-3 p-3">
+                    <img src="{{ listing.images.all.0.image.url }}" class="img-fluid">
+                </div>
+                <div class="col-9 p-3">
+                    <h6>
+                        <a class="text-decoration-none text-dark" href="{% url 'post_details' listing.id %}">
+                            {{ listing.title }}
+                        </a>
+                    </h6>
+                    <div class="mb-3">
+                        <span class="text-muted">{{ listing.category }}</span>
+                    </div>            
+                    <div>
+                        <img src="{{ listing.author.profile_pic.url }}" class="profile-pic">
+                        <span class="mx-1">{{ listing.author }}</span>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="row mb-3">
+                    <h3>Price Details</h3>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="mb-3">
+                            <span class="text-muted">${{ listing.price }} x {{ details.nights }} nights</span> 
+                        </div>
+                        <div class="mb-3">
+                            <span class="text-muted">Cleaning fee</span>
+                        </div>
+                        <div class="mb-3">
+                            <span class="text-muted">Taxes</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6 d-flex justify-content-end">
+                        <div class="mb-3">
+                            <span class="text-muted">${{ details.total }} USD</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/reserve.js' %}"></script>
+{% endblock %}

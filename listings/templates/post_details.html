@@ -1,0 +1,388 @@
+{% extends '_base.html' %}
+
+{% load static %}
+
+{% block title %}{{ post.title }}{% endblock title %}
+
+{% block body %}
+<div class="container p-3">
+    <div class="container bg-white row p-0 border rounded post-details">
+        <!-- Right Column -->
+        <div class="col p-0">
+            {% if post.images.all|length > 1 %}
+                <div id="postImagesCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="false">
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#postImagesCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                        {% for image in post.images.all|slice:"1:" %}
+                            <button type="button" data-bs-target="#postImagesCarousel" data-bs-slide-to="{{ forloop.counter }}" aria-label="Slide {{ forloop.counter|add:1 }}"></button>
+                        {% endfor %}
+                        </div>
+                    <div class="carousel-inner">
+                        <div class="carousel-item active bg-dark">
+                            <div style="height: 500px;">
+                                <img src="{{ post.images.all.0.image.url }}" class="d-block w-100" alt="{{ post.title }}" style="height: 500px; object-fit: cover;">
+                            </div> 
+                        </div>
+                        {% for image in post.images.all|slice:"1:" %}
+                            <div class="carousel-item bg-dark">
+                                <div style="height: 500px;">
+                                    <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ post.title }}" style="height: 500px; object-fit: cover;">
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#postImagesCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#postImagesCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            {% else %}
+                <div style="height: 500px;">
+                    <img src="{{ post.images.all.0.image.url }}" class="d-block w-100" alt="{{ post.title }}" style="height: 500px; object-fit: cover;">
+                </div> 
+            {% endif %}
+            <div class="p-3">
+                <div class="p-3 container border rounded">
+                    <div class="mb-3 d-flex justify-content-center align-items-center">
+                        <h4>{{ post.rating }}</h4>
+                    </div>
+                    <div class="d-flex justify-content-center align-items-center mb-3 rating-stars" id="rating-stars" data-item="{{ post.id }}">
+                        {% if has_reserved %}
+                            <i class="fa-regular fa-star mx-1 rating-star fs-2" id="1"></i>
+                            <i class="fa-regular fa-star mx-1 fs-2" id="2"></i>
+                            <i class="fa-regular fa-star mx-1 fs-2" id="3"></i>
+                            <i class="fa-regular fa-star mx-1 fs-2" id="4"></i>
+                            <i class="fa-regular fa-star mx-1 fs-2" id="5"></i>
+                            <form class="d-none" method="post" id="rating-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="rating" value=""/>
+                            </form>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-center">
+                        <span class="text-muted">({{ post.ratings.all|length }} reviews)</span>
+                    </div>
+                </div>
+            </div>    
+        </div>
+        <div class="col p-3">
+            <!-- Update Form -->
+            <form action="{% url 'update_post' %}" method="post" id="update-post-form" style="display: none;">
+                {% csrf_token %}
+                <div class="mb-3" id="post-details-header">
+                    <span>
+                        <input class="form-control title" name="title" value="{{ post.title }}"></h1> 
+                    </span>
+                </div>
+                <div class="mb-3">
+                    <div class="wallpaper p-3 d-flex align-items-center">
+                        <input type="hidden" value="{{ post.author.wallpaper.url }}" name="wallpaper">
+                        <img src="{{ post.author.profile_pic.url }}" class="profile-pic" id="profile-pic" style="height: 50px; width: 50px;" alt="profile pic">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="mx-3 d-flex align-items-center bg-light border rounded p-2 shadow-sm h-50">
+                                <a class="text-decoration-none" href="{% url 'profile' post.author %}">
+                                    <h4 id="username" class="text-dark">{{ post.author }}</h4>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h2>US $</h2><input class="form-control price" name="price" type="number" value="{{ post.price }}"/>
+                </div>
+                <div class="mb-3">
+                    <textarea class="form-control description" name="description">{{ post.description }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <hr>
+                    <input type="hidden" value="{{ post.id }}" id="post-id">
+                    {% if attributes %}
+                        <table id="attributes-table" class="table">
+                            <thead>
+                                <th>Field</th>
+                                <th>Value</th>
+                            </thead>
+                                <tbody id="attributes-table-body">
+                                    {% for key, value in attributes.items %}
+                                        <tr>
+                                            <td>
+                                                <input class="form-control" name="field" value="{{ key }}"/>
+                                            </td>
+                                            <td>
+                                                <input class="form-control" name="value" value="{{ value }}"/>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                        </table>
+                    {% endif %}
+                </div>
+                <div id="post-options">
+                    <input type="submit" class="btn btn-outline-success"/>
+                    <button class="btn btn-outline-danger" id="cancel-update-post-form">Cancel</button>
+                </div>
+                <input type="hidden" name="post" value="{{ post.id }}"/>
+            </form>
+            
+            <!-- Info -->
+            <div id="info">
+                <div class="row mb-3" id="post-details-header">
+                    <div class="col-9">
+                        <h4 class="post-details-title" id="post-title">{{ post.title }}</h4> 
+                    </div>
+
+                    <div class="col-3 d-flex">
+                        <!-- Update and delete options-->
+                        {% if post.author == user %}
+                        <div class="dropdown mx-3">
+                            <div class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16">
+                                    <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
+                                </svg>
+                            </div>
+                            <ul class="dropdown-menu">
+                            <li>
+                                <span class="dropdown-item edit-post">
+                                    Edit Post
+                                </span>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'delete_post' post.id %}">
+                                    Delete
+                                </a>
+                            </li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                        <!-- Wishlist -->
+                        {% if post.is_in_wishlist %}
+                        <span class="add-to-cart" data-item="{{ post.id }}" style="display: none;">
+                            <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
+                            Save
+                        </span>
+                        <span class="remove-cart-item" data-item="{{ post.id }}">
+                            <i class="fa-solid fa-heart" data-item="{{ post.id }}"></i>
+                            Unsave
+                        </span>
+                        {% elif user.is_authenticated %}
+                        <span class="add-to-cart" data-item="{{ post.id }}">
+                            <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
+                            Save
+                        </span>
+                        <span class="remove-cart-item" data-item="{{ post.id }}" style="display: none;"> 
+                            <i class="fa-solid fa-heart" data-item="{{ post.id }}"></i>
+                            Unsave
+                        </span>
+                        {% else %}
+                        <a class="text-decoration-none text-dark" href="{% url 'login' %}?next=/post/{{ post.id }}">
+                            <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
+                            Save
+                        </a>
+                        <a class="text-decoration-none text-dark" href="{% url 'login' %}?next=/post/{{ post.id }}" style="display: none;">
+                            <i class="fa-solid fa-heart"></i>
+                            Unsave
+                        </a>
+                        {% endif %}
+                    </div>
+        
+                </div>
+                <div class="mb-3">
+                    <div class="wallpaper p-3 d-flex align-items-center">
+                        <input type="hidden" value="{{ post.author.wallpaper.url }}" name="wallpaper">
+                        <img src="{{ post.author.profile_pic.url }}" class="profile-pic" id="profile-pic" style="height: 50px; width: 50px;" alt="profile pic">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="mx-3 d-flex align-items-center bg-light border rounded p-2 shadow-sm h-50">
+                                <a class="text-decoration-none" href="{% url 'profile' post.author %}">
+                                    <h4 id="username" class="text-dark">{{ post.author }}</h4>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <span id="post-description">{{ post.description }}</span>
+                </div>
+                <div class="mb-3">
+                    <hr>
+                    <input type="hidden" value="{{ post.id }}" id="post-id">
+                    {% if attributes %}
+                        <table id="attributes-table" class="table">
+                            <thead>
+                                <th>Field</th>
+                                <th>Value</th>
+                            </thead>
+                                <tbody id="attributes-table-body">
+                                    {% for key, value in attributes.items %}
+                                        <tr>
+                                            <td class="field">{{ key }}</td>
+                                            <td class="value">{{ value }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                        </table>
+                    {% endif %}
+                </div>
+                <div id="post-options">
+                    <!-- Payment form -->
+                    <form action="{% url 'reserve' post.id %}" method="get" class="mb-3" id="reserve-form" data-listing="{{ post.id }}">
+                        {% csrf_token %}
+                        <div class="container bg-white rounded border">
+                            <!-- Price -->
+                            <div class="mb-3 d-flex align-items-center p-1">
+                                <h3 id="post-price">${{ post.price }}</h3> <span class="text-muted mx-3">night</span>
+                            </div>
+                            <!-- Check In & Check Out -->
+                            <div class="mb-3 d-flex">
+                                <div class="p-1 w-50">
+                                    <div class="form-floating">
+                                        <input type="date" class="form-control" id="check-in" name="check-in" required>
+                                        <label for="check-in">Check In</label>
+                                    </div>
+                                </div>
+                                <div class="p-1 w-50">
+                                    <div class="form-floating">
+                                        <input type="date" class="form-control" id="check-out" name="check-out" required>
+                                        <label for="check-out">Check Out</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Guests -->
+                            <div class="mb-3 p-1">
+                                <div class="dropdown">
+                                    <!-- Trigger -->   
+                                    <div class="form-floating" type="button" id="guests" aria-expanded="false">
+                                        <span class="form-control dropdown-toggle" id="guests-text">1 Adult</span>
+                                        <label for="guests-text">Guests</label>
+                                    </div>               
+                                    <!-- Dropdown -->
+                                    <ul class="dropdown-menu w-100" aria-labelledby="guests" id="guests-dropdown-form" style="display: none;">
+                                        <!-- Adults -->
+                                        <li>
+                                            <div class="dropdown-item">
+                                                <div class="row">
+                                                    <input type="hidden" name="adults" required>
+                                                    <!-- Label -->
+                                                    <div class="col-9">
+                                                        <h6>Adults</h6>
+                                                        <span class="text-muted">Age 13+</span>
+                                                    </div>
+                                                    <!-- Input Number -->
+                                                    <div class="col-3 d-flex align-items-center">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="white-circle border shadow-sm remove-guests" data-guests-type="adults">
+                                                                <i class="fa-solid fa-minus" data-guests-type="adults"></i>
+                                                            </div>
+                                                            <span class="mx-3" id="adults-number">
+                                                                1
+                                                            </span>
+                                                            <div class="white-circle border shadow-sm add-guests" data-guests-type="adults">
+                                                                <i class="fa-solid fa-plus" data-guests-type="adults"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <!-- Children -->
+                                        <li>
+                                            <div class="dropdown-item">
+                                                <div class="row">
+                                                    <input type="hidden" name="children">
+                                                    <!-- Label -->
+                                                    <div class="col-9">
+                                                        <h6>Children</h6>
+                                                        <span class="text-muted">Ages 2-12</span>
+                                                    </div>
+                                                    <!-- Input Number -->
+                                                    <div class="col-3 d-flex align-items-center">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="white-circle border shadow-sm remove-guests" data-guests-type="children">
+                                                                <i class="fa-solid fa-minus" data-guests-type="children"></i>
+                                                            </div>
+                                                            <span class="mx-3" id="children-number">
+                                                                0
+                                                            </span>
+                                                            <div class="white-circle border shadow-sm add-guests" data-guests-type="children">
+                                                                <i class="fa-solid fa-plus" data-guests-type="children"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <!-- Infants -->
+                                        <li>
+                                            <div class="dropdown-item">
+                                                <div class="row">
+                                                    <input type="hidden" name="infants">
+                                                    <!-- Label -->
+                                                    <div class="col-9">
+                                                        <h6>Infants</h6>
+                                                        <span class="text-muted">Under 2</span>
+                                                    </div>
+                                                    <!-- Input Number -->
+                                                    <div class="col-3 d-flex align-items-center">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="white-circle border shadow-sm remove-guests" data-guests-type="infants">
+                                                                <i class="fa-solid fa-minus" data-guests-type="infants"></i>
+                                                            </div>
+                                                            <span class="mx-3" id="infants-number">
+                                                                0
+                                                            </span>
+                                                            <div class="white-circle border shadow-sm add-guests" data-guests-type="infants">
+                                                                <i class="fa-solid fa-plus" data-guests-type="infants"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>      
+                            <div class="mb-3 p-1">
+                                <input type="button" id="reserve-button" class="btn btn-success w-100" value="Reserve">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="p-3">
+            <div class="mb-3">
+                <h2>Comments</h2>
+            </div>
+            {% if user.is_authenticated and has_reserved %}
+                <div class="p-3 container border">
+                    <div>
+                        <img src="{{ user.profile_pic.url }}" class="profile-pic">
+                        <a class="mx-3 text-decoration-none" href="{% url 'profile' user %}">{{ user }}</a>
+                    </div>
+                    <hr>
+                    <form action="{% url 'comment' post.id %}" method="post" id="comment-form" data-post="{{ post.id }}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <textarea name="comment" rows="3" placeholder="Comment here" class="form-control" id="comment-textarea"></textarea>
+                        </div>
+                        <input type="submit" class="btn btn-success">
+                    </form> 
+                </div>
+            {% endif %}
+        </div>
+        <div class="p-3" id="comments-container">
+            {% for comment in comments %}
+                {% include 'comment.html' %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/comments.js' %}"></script>
+<script src="{% static 'js/rating.js' %}"></script>
+<script src="{% static 'js/wallpapers.js' %}"></script>
+<script src="{% static 'js/reserve.js' %}"></script>
+{% endblock %}

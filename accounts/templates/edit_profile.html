@@ -1,0 +1,73 @@
+{% extends '_base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile{% endblock title %}
+
+{% block body %}
+<div class="p-3">
+    <div class="container w-75 rounded bg-white border p-0">
+        <div id="wallpaper" class="wallpaper p-3"">
+            <input type="hidden" value="{{ user.wallpaper.url }}" name="wallpaper"/>
+            <img src="{{ user.profile_pic.url }}" class="profile-pic" id="profile-pic" style="height: 100px; width: 100px;" alt="profile pic">
+        </div>
+        <div class="container p-3">
+            <form action="{% url 'edit_profile' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group row mb-3">
+                    <div class="col">
+                        <label for="username" class="form-label">Username</label>
+                        <input class="form-control text-dark" type="text" name="username" id="username" placeholder="Username" value="{{ user.username }}" required>
+                        <div class="invalid-feedback" id="invalid-username" >
+                            Username already taken.
+                        </div>
+                    </div>
+                    <div class="col">
+                        <label for="email" class="form-label">Email</label>
+                        <input class="form-control" id="email" type="email" name="email" placeholder="Email" value="{{ user.email }}">
+                    </div>
+                </div>
+                <div class="form-group row mb-3">
+                    <div class="col">
+                        <label for="first-name" class="form-label">First Name</label>
+                        <input type="text" id="first-name" class="form-control text-dark" name="first_name" placeholder="First name" value="{{ user.first_name }}" required>
+                    </div>
+                    <div class="col">
+                        <label for="last-name" class="form-label">Last Name</label>
+                        <input type="text" class="form-control text-dark" name="last_name" id="last-name" placeholder="Last name" value="{{ user.last_name }}" required>
+                    </div>
+                </div>
+                <div class="form-group row mb-3">
+                    <div class="col">
+                        <label class="form-label" for="password">Password</label>
+                        <input class="form-control" id="password" type="password" name="password" disabled>
+                    </div>
+                    <div class="col">
+                        <label class="form-label" for="password">Confirmate Password</label>
+                        <input class="form-control" id="confirmation" type="password" name="confirmation" disabled>
+                    </div>
+                </div>
+                <div class="form-group mb-3 row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label class="form-label" for="profile-pic-input">Profile Picture</label>
+                            <input type="file" class="form-control" id="profile-pic-input" name="profile_pic" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label class="form-label" for="wallpaper-input">Wallpaper</label>
+                            <input type="file" class="form-control" id="wallpaper-input"  name="wallpaper" accept="image/*">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="submit" class="btn btn-primary">
+                    <a href="{% url 'profile' user %}" class="btn btn-danger">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/users.js' %}"></script>
+<script src="{% static 'js/wallpapers.js' %}"></script>
+{% endblock %}

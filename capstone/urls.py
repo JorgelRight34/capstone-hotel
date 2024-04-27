@@ -21,7 +21,9 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('capstoneapp.urls'))
+    path('', include('listings.urls')),
+    path('', include('accounts.urls')),
+    path('', include('reservations.urls')),
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT  
 )

@@ -1,0 +1,41 @@
+{% extends "_base.html" %}
+
+{% load static %}
+
+{% block title %}Wishlist{% endblock title %}
+
+{% block body %}
+    <div class="p-3 container border rounded bg-white" id="posts">
+        <div class="mb-3">
+            <div class="mb-3">
+                <span class="h3">TOTAL</span>: <span class="cart-total-price">0</span>
+            </div>
+            <span class="h3">ITEMS</span>: <span class="cart-total-items">0</span>
+        </div>
+        <div class="row mb-3 search-posts-options">
+            <form class="col d-flex search-posts-container">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" id="search-wishlist-listings">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+            <div class="col select-posts-order-container">
+                <select class="form-select" name="select-order">
+                    <option>Order by</option>
+                    <option value="price">Lesser price to greater price</option>
+                    <option value="date">Date</option>
+                    <option value="category">Category</option>
+                </select>
+            </div>
+        </div>
+        <hr>
+        <div class="posts-container">
+            {% for item in cart %}
+                {% with post=item %}
+                    {% include 'post.html' %}
+                {% endwith %}
+            {% empty %}
+                Posts
+            {% endfor %}
+        </div>
+    </div>
+    <script src="{% static 'js/profile.js' %}"></script>
+{% endblock body %}
