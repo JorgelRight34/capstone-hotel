@@ -12,8 +12,7 @@ from django.urls import reverse
 from django.template.loader import render_to_string
 from datetime import datetime
 
-
-from .models import User, Listing, ListingImage, Stay, Comment, Category, Rating
+from .models import User, Listing, ListingImage, Stay, Comment, Category, Rating, Request
 
 
 ITEMS_PER_PAGE = 10
@@ -81,8 +80,41 @@ def add_to_wishlist(request, listing):
     return JsonResponse(listing.serialize())
 
 
+def accept_reservation(request, reservation):
+    request_to_book = get_object_or_404(Request, pk=reservation)
+
+    if request_to_book.notificator != request.user:
+        return HttpResponse(status=405)
+    
+    # Accept reservation
+    request_to_book.status = 'accepted'
+    request_to_book.save()
+
+    return HttpResponse(status=204)
+
+
+def decline_reservation(request, reservation):
+    request_to_book = get_object_or_404(Request, pk=reservation)
+
+    if request_to_book.notificator != request.user:
+        return HttpResponse(status=405)
+    
+    # Accept reservation
+    request_to_book.status = 'declined'
+    request_to_book.save()
+
+    return HttpResponse(status=204)
+
+
+@login_required
+def notifications(request):
+    return JsonResponse(Request.serialize_requests(request.user.requests.all()), safe=False)
+
+
+@login_required
 def reserve(request, listing):
     listing = get_object_or_404(Listing, pk=listing)
+
     # Get guests
     adults = request.GET.get('adults') or 1
     children = request.GET.get('children') or 0
@@ -90,32 +122,14 @@ def reserve(request, listing):
     pets = request.GET.get('pets') or 0
 
     # Get check in and check out
-    check_in =  datetime.strptime(request.GET['check-in'], '%Y-%m-%d').date()
-    check_out = datetime.strptime(request.GET['check-out'], '%Y-%m-%d').date()
+    check_in =  datetime.strptime(request.GET.get('check-in') or request.POST['check-in'], '%Y-%m-%d').date()
+    check_out = datetime.strptime(request.GET.get('check-out') or request.POST['check-out'], '%Y-%m-%d').date()
     nights = (check_out - check_in).days
 
-    details = {'adults': adults, 
-               'children': children, 
-               'infants': infants, 
-               'pets': pets, 
-               'nights': nights, 
-               'total': listing.price * nights,
-               'check_in': request.GET['check-in'],
-               'check_out': request.GET['check_out']
-            }
-
     if request.method == 'POST':
-        # Get guests
-        adults = request.POST.get('adults') or 1
-        children = request.POST.get('children') or 0
-        infants = request.POST.get('infants') or 0
-        pets = request.POST.get('pets') or 0
 
-        check_in =  datetime.strptime(request.POST['check-in'], '%Y-%m-%d').date()
-        check_out = datetime.strptime(request.POST['check-out'], '%Y-%m-%d').date()
         print("check_in", check_in)
         print("check_out", check_out)
-        nights = (check_out - check_in).days
         print("nights: ", nights)
         try:
             amount = listing.price * nights
@@ -143,9 +157,25 @@ def reserve(request, listing):
             print(stay)
             stay.save()
 
+            # Create the request to book
+            request = Request(notificator=request.user, receiver=listing.author, request=listing, stay=stay)
+            print(request)
+            request.save()
+
             return JsonResponse({"Worked": "True"})
         except:
             return JsonResponse({"Worked": "False"})
+        
+
+    details = {'adults': adults, 
+               'children': children, 
+               'infants': infants, 
+               'pets': pets, 
+               'nights': nights, 
+               'total': listing.price * nights,
+               'check_in': request.GET['check-in'],
+               'check_out': request.GET['check-out']
+    }
 
     return render(request, 'reserve.html', {
         'listing': listing,
@@ -154,15 +184,54 @@ def reserve(request, listing):
     })
 
 
-def category_posts(request, category):
-    category = get_object_or_404(Category, pk=category)
-    posts = {}
-    for post in category.listings.all():
-        if request.user.wishlist.is_in_wishlist(post.id):
-            post.is_in_wishlist = True
-        posts[f'{post.id}'] = render_to_string('post.html', {'post': post})
+def paginate(paginator, page):
+    """Return right page for paginator"""
+    try:
+        paginator = paginator.page(page)
+    except PageNotAnInteger:
+        paginator = paginator.page(1)
+    except EmptyPage:
+        paginator = paginator.page(paginator.num_pages)
 
-    return JsonResponse(posts)
+    return paginator
+
+
+def requests_to_book(request):
+    """Load pending, accepted and declined requests of user"""
+    # Get page for pending requests
+    pending_page = request.GET.get('pending_page')
+
+    # Paginator
+    pending_requests = Paginator(request.user.requests.filter(status='pending'), ITEMS_PER_PAGE)
+    pending_requests = paginate(pending_requests, pending_page)
+
+
+    # Get page for accepted requests
+    accepted_page = request.GET.get('accepted_page')
+
+    # Paginator
+    accepted_requests = Paginator(request.user.requests.filter(status='accepted'), ITEMS_PER_PAGE)
+    accepted_requests = paginate(accepted_requests, accepted_page)
+
+
+    # Get page for declined requests
+    declined_page = request.GET.get('declined_page')
+
+    # Paginator
+    declined_requests = Paginator(request.user.requests.filter(status='declined'), ITEMS_PER_PAGE)
+    declined_requests = paginate(declined_requests, declined_page)
+
+
+    return render(request, 'requests.html', {
+        'pending_requests': pending_requests,
+        'accepted_requests': accepted_requests,
+        'declined_requests': declined_requests
+    })
+
+
+def request_to_book(request, id):
+    request_to_book = get_object_or_404(Request, pk=id)
+    return render(request, 'request_view.html', {'request_to_book': request_to_book})
 
 
 def wishlist_json(request):
@@ -199,7 +268,7 @@ def comment(request, post):
 
 @login_required
 def clear_wishlist(request):
-    request.user.wishlist.clear_cart()
+    request.user.wishlist.clear_wishlist()
     return HttpResponse(status=204)
 
 
@@ -380,11 +449,6 @@ def post_details(request, post):
     })
 
 
-def post_json(request, post):
-    post = get_object_or_404(Listing, pk=post)
-    return JsonResponse(post.serialize())
-
-
 @login_required
 def remove_wishlist_listing(request, listing):
     listing = get_object_or_404(Listing, pk=listing)
@@ -438,22 +502,6 @@ def update_post(request):
         post.save()
 
         return JsonResponse(post.serialize())
-
-
-def user_posts(request, username):
-    user = get_object_or_404(User, username=username)
-    page = request.GET.get('page')
-    
-    posts = Paginator(user.posts.all().order_by('-date'), 6)
-
-    try:
-        posts = posts.page(page)
-    except PageNotAnInteger:
-        posts = posts.page(1)
-    except EmptyPage:
-        return HttpResponse(status=404)
-
-    return JsonResponse(Listing.render_posts_json(posts, request.user))
 
 
 def user_comments(request, username):
@@ -531,28 +579,96 @@ def register_view(request):
 
 
 def search_posts(request):
-    query = request.GET.get('q')
-    category = request.GET.get('category')
-    posts = Listing.objects.all()
+    # Get all GET parameters
+    q = request.GET.get('q')
+    order = request.GET.get('order_by') or 'date',
+    wishlist = request.GET.get('wishlist')    # Contains username of wishlist's user
 
-    if category:
-        category = Category.objects.get(category=category)
+    parameters = {
+        'category': request.GET.get('category'),
+        'author': request.GET.get('author')
+    }
 
-    if (query):
-        posts = Listing.objects.filter(Q(title__icontains=query) | Q(description__icontains=query), category=category)
+    # Populate paginator parameters only the non null ones
+    paginator_parameters = {}
+    for parameter in parameters.keys():
+        if parameters[parameter] and parameter != 'order_by' and parameter !='query' and parameter != 'wishlist':
+            paginator_parameters[parameter] = parameters[parameter]
+
+
+    # Get category if there's been a category
+    if parameters['category']:
+        paginator_parameters['category'] = Category.objects.get(category=parameters['category'])
+
+    # Get author if author was defined
+    if parameters['author']:
+        paginator_parameters['author'] = User.objects.get(username=parameters['author'])
+
+    # Get all posts from a query if a query was given
+    if q:
+        posts = Listing.objects.filter(
+            Q(title__icontains=q) | 
+            Q(description__icontains=q) | 
+            Q(category__category__icontains=q), 
+            **paginator_parameters
+        ).order_by(order)
+    else:
+        # Unpack parameters 
+        posts = Listing.objects.filter(**paginator_parameters).order_by(order)
+
+    # If wishlist was defined then get all posts from wishlist
+    if wishlist:
+      posts = [post for post in posts]
+      wishlist = request.user.wishlist.listings.all()
+      for post in posts:
+          # If post not in wishlist then remove it from posts
+          if post.id not in [wishlist_listing.listing.id for wishlist_listing in wishlist]:
+              posts.remove(post)
 
     # Paginator
     posts = Paginator(posts, POSTS_PER_PAGE)
 
     # Get page
-    page = request.GET.get('page')
+    page = request.GET.get('page') or 1
 
     try:
         posts = posts.page(page)
-    except PageNotAnInteger:
-        posts = posts.page(1)
     except EmptyPage:
         return HttpResponse(status=404)
 
 
-    return JsonResponse(Listing.render_posts_json(posts, request.user))
+    return JsonResponse(Listing.render_posts_json(posts, request.user), safe=False)
+
+
+def search_requests(request):
+    # Get all parameters
+    q = request.GET.get('q') or ''
+    order = request.GET.get('order_by') or 'stay__date'
+    status = request.GET.get('status') or 'pending'
+
+    # Get requests
+    requests = Request.objects.filter(
+        Q(stay__listing__title__icontains=q) |
+        Q(stay__listing__description__icontains=q) |
+        Q(stay__listing__category__category__icontains=q) |
+        Q(stay__listing__price__icontains=q),
+        status=status
+    ).order_by(order)
+
+    # Return 404 if not matches
+    if not requests:
+        return HttpResponse(status=404)
+
+    # Get page
+    page = request.GET.get('page') or 1
+
+    # Paginator
+    requests = Paginator(requests, ITEMS_PER_PAGE)
+
+    try:
+        requests = requests.page(page)
+    except EmptyPage:
+        return HttpResponse(status=404)
+    
+
+    return JsonResponse(Request.render_requests_json(requests), safe=False)

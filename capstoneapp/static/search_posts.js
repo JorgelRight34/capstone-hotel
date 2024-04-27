@@ -28,9 +28,20 @@ const loadMorePosts = async () => {
     if (Math.round(window.innerHeight + window.scrollY)  >= document.body.offsetHeight) {
         // Load more items when scrolled to the bottom
         page += 1;
-        const response = await fetch(`/search-posts?page=${page}`);
+        let category = document.getElementById('current-category') || ''
+        if (category) {
+            category = category.value;
+        };
+
+        let user = document.getElementById('profile-user') || ''
+        if (user) {
+            user = user.value;
+        };
+
+        const response = await fetch(`/search-posts?order_by=${order}&category=${category}&author=${user}&page=${page}&q=${getQuery()}`);
 
         if (response.status === 404) {
+            page -= 1;
             return;
         }
         

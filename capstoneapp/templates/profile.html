@@ -6,8 +6,8 @@
 
 {% block body %}
 <div class="container p-3">
+    <input type="hidden" name="profile-user" id="profile-user" value="{{ profile_user }}">
     <div class="container bg-white border rounded p-0">
-        
         <!-- Wallpaper -->
         <div class="wallpaper p-3 d-flex">
             <input type="hidden" value="{{ profile_user.wallpaper.url }}" name="wallpaper">
@@ -48,7 +48,7 @@
             <div id="posts" class="p-3 d-none">
                 <div class="row mb-3 search-posts-options">
                     <form class="col d-flex search-posts-container">
-                        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" id="search-post">
+                        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" id="search-user-posts">
                         <button class="btn btn-outline-success" type="submit">Search</button>
                     </form>
                     <div class="col select-posts-order-container">

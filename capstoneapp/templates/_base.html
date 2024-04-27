@@ -18,8 +18,18 @@
       <nav class="navbar navbar-expand-lg navbar-light bg-white">
         <div class="row w-100">
           <!-- Logo -->
-          <div class="col-3 col-md-3 col-sm-3 mx-0 navbar-logo d-flex justify-content-center">
+          <div class="col-3 col-md-3 col-sm-3 mx-0 navbar-logo d-flex justify-content-center align-items-center">
             <a class="navbar-brand" href="{% url 'index' %}">Capstone</a>
+            {% if user.is_authenticated %}
+            <div class="nav-item mx-3">
+              <div class="dropdown">
+                <i class="fa-solid fa-bell" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                </i>
+                <ul class="dropdown-menu" aria-labelledby="notifications" id="notifications-dropdown">
+                </ul>
+              </div>
+            </div>
+            {% endif %}
           </div>
 
           <!-- Search Bar -->
@@ -74,6 +84,9 @@
                     <a class="dropdown-item" href="#new-post" id="new-post-btn">Post +</a>
                   </div>
                 </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'requests' %}">Requests to Book</a>
+                </li>
               </ul>
             </div>
             {% endif %}
@@ -86,7 +99,7 @@
 
           {% endblock %}
 
-          <div id="messages-container" class="p-3" tabindex="0">
+          <div id="messages-container" class="p-3">
           </div>
 
         <dialog id="new-post-dialog" class="container border rounded">
@@ -152,5 +165,6 @@
 
     <script src="{% static 'posts.js' %}"></script>
     <script src="{% static 'cart.js' %}"></script>
+    <script src="{% static 'notifications.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </html>

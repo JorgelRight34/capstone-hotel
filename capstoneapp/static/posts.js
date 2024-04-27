@@ -200,7 +200,6 @@ const loadMessage = (msg, type) => {
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     `;
-    messagesContainer.focus();
 };
 
 

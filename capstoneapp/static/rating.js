@@ -10,7 +10,7 @@ const fillStar = (event) => {
 
     for (const child of ratingStarsContainer.children) {
         if (child !== star) {
-            child.classList = 'fa-solid fa-star mx-1 fs-1';
+            child.classList = 'fa-solid fa-star mx-1 fs-2';
             rating++;
         } else {
             break;
@@ -23,10 +23,10 @@ const fillStar = (event) => {
 
 
     if (mouseX <= starMiddle) {
-        star.classList = 'fa-solid fa-star-half-stroke mx-1 fs-1';
+        star.classList = 'fa-solid fa-star-half-stroke mx-1 fs-2';
         rating += 0.5;
     } else {
-        star.classList = 'fa-solid fa-star mx-1 fs-1';
+        star.classList = 'fa-solid fa-star mx-1 fs-2';
         rating++;
     };
 }
@@ -34,11 +34,11 @@ const fillStar = (event) => {
 
 const unfillStar = (event) => {
     const star = event.target;
-    star.classList = 'fa-regular fa-star mx-1 fs-1';
+    star.classList = 'fa-regular fa-star mx-1 fs-2';
 
     for (const child of ratingStarsContainer.childNodes) {
         if (child !== star) {
-            child.classList = 'fa-regular fa-star mx-1 fs-1';
+            child.classList = 'fa-regular fa-star mx-1 fs-2';
             rating--;
         } else {
             return;
@@ -51,10 +51,9 @@ const rate = async () => {
     ratingInput = ratingForm.querySelector('input[name="rating"]');
     ratingInput.value = rating;
 
-    console.log("Submitting with value of ", rating)
-
     const formData = new FormData(ratingForm);
-    const response = await fetch(`/rate-item/${ratingStarsContainer.dataset.item}`, {method: 'POST', body: formData});
+    const response = await fetch(`/rate/${ratingStarsContainer.dataset.item}`, {method: 'POST', body: formData});
+    loadMessage(`<b>Rated Listing</b> You have rated this listing a ${rating}/5.0!`, 'success');
 
 }
 

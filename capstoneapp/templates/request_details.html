@@ -1,0 +1,161 @@
+<div class="container w-75 border rounded p-3 shadow-sm">
+    <div class="row">
+        <div class="col-lg-6">
+            <img src="{{ request_to_book.stay.listing.images.all.0.image.url }}" class="img-fluid mb-3">
+            <!-- Rating -->
+            <div class="p-1 container border rounded mb-3">
+                <div class="mb-1 d-flex justify-content-center align-items-center">
+                    <h4 id="rating">{{ request_to_book.stay.listing.rating }}</h4>
+                </div>
+                <div class="d-flex justify-content-center align-items-center mb-1 rating-stars" id="rating-stars" data-item="{{ post.id }}">
+                    <i class="fa-regular fa-star mx-1 rating-star fs-6" id="1"></i>
+                    <i class="fa-regular fa-star mx-1 rating-star fs-6" id="2"></i>
+                    <i class="fa-regular fa-star mx-1 rating-star fs-6" id="3"></i>
+                    <i class="fa-regular fa-star mx-1 rating-star fs-6" id="4"></i>
+                    <i class="fa-regular fa-star mx-1 rating-star fs-6" id="5"></i>
+                </div>
+                <div class="d-flex justify-content-center">
+                    <span class="text-muted">({{ request_to_book.stay.listing.ratings.all|length }} reviews)</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="mb-3">
+                <h3>{{ request_to_book }}</h3>
+            </div>
+            <div class="mb-3">
+                <h6>
+                    <a class="text-decoration-none text-dark" href="{% url 'post_details' request_to_book.stay.listing.id %}">
+                        {{ request_to_book.stay.listing.title }}
+                    </a>
+                </h6>
+            </div>
+            <!-- User -->
+            <div class="container border rounded row mb-3 p-1 mx-auto">
+                <div class="col-lg-3 d-flex align-items-center justify-content-center">
+                    <img src="{{ request_to_book.notificator.profile_pic.url }}" class="profile-pic shadow-sm" style="height: 100px; width: 100px;">
+                </div>
+                <div class="col-lg-9 d-flex justify-content-center align-items-center">
+                    <a href="{% url 'profile' request_to_book.notificator %}" class="text-decoration-none text-dark">
+                        <h3 class="text-center">{{ request_to_book.notificator }}</h3>
+                        <h6 class="text-center">{{ request_to_book.notificator.first_name }} {{ request_to_book.notificator.last_name }}</h6>
+                    </a>
+                </div>
+            </div>
+            <!-- Guests -->
+            <div class="mb-3">
+                <h6>Guests</h6>
+                <div>
+                    <span>
+                        {{ request_to_book.stay.adults }} adults, 
+                        {{ request_to_book.stay.children }} children, 
+                        {{ request_to_book.stay.infants }} infants, 
+                        {{ request_to_book.stay.pets}} pets.
+                    </span>
+                </div>               
+            </div>
+            <!-- Details -->
+            <div>
+                <button class="btn btn-success w-100 details" data-request="{{ request_to_book.id }}">Details</button>
+            </div>
+        </div>
+    </div>
+</div>
+<dialog id="request-{{ request_to_book.id }}-details" class="border rounded p-0 container">
+    <div class="border rounded p-0 container">
+        <div class="d-flex justify-content-center align-items-center">
+            <div class="container border rounded bg-white p-3 shadow-sm row">
+                <!-- First column -->
+                <div class="col-lg-6 container border p-3 order-sm-2">
+                    <h3>Request to Book</h3>
+                    <div class="row mb-3">
+                        <h6>{{ request_to_book.notificator }}'s Trip</h6>
+                    </div>
+                    <div class="row mb-3">
+                        <!-- Check In & Check Out -->
+                        <div class="mb-3">
+                            <h6>Dates</h6>
+                            <div class="d-flex">
+                                <div class="w-50">
+                                    <h6>Check In</h6>
+                                    <span>{{ request_to_book.stay.check_in }}</span>
+                                </div>
+                                <div class="w-50">
+                                    <h6>Check Out</h6>
+                                    <span>{{ request_to_book.stay.check_out }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Guests -->
+                        <div class="mb-3">
+                            <h6>Guests</h6>
+                            <div>
+                                <span>
+                                    {{ request_to_book.stay.adults }} adults, 
+                                    {{ request_to_book.stay.children }} children, 
+                                    {{ request_to_book.stay.infants }} infants, 
+                                    {{ request_to_book.stay.pets}} pets.
+                                </span>
+                            </div>               
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-center mb-3">
+                        <button class="btn btn-success mx-3 accept-reservation" data-reservation="{{ request_to_book.id }}">Accept Reservation</button>
+                        <button class="btn btn-danger mx-3 decline-reservation" data-reservation="{{ request_to_book.id }}">Decline Reservation</button>
+                        <button class="btn btn-danger mx-3 close-details" data-request="{{ request_to_book.id }}">Close Details</button>
+                    </div> 
+                </div>
+                <!-- Second Column -->
+                <div class="col-lg-6 order-sm-1">
+                    <div class="container border bg-white p-3">
+                        <div class="row">
+                            <div class="col-3 p-3">
+                                <img src="{{ request_to_book.stay.listing.images.all.0.image.url }}" class="img-fluid">
+                            </div>
+                            <div class="col-9 p-3">
+                                <h6>
+                                    <a class="text-decoration-none text-dark" href="{% url 'post_details' request_to_book.stay.listing.id %}">
+                                        {{ request_to_book.stay.listing.title }}
+                                    </a>
+                                </h6>
+                                <div class="mb-3">
+                                    <span class="text-muted">{{ request_to_book.stay.listing.category }}</span>
+                                </div>            
+                                <div>
+                                    <img src="{{ request_to_book.stay.listing.author.profile_pic.url }}" class="profile-pic">
+                                    <span class="mx-1">{{ request_to_book.stay.listing.author }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="row mb-3">
+                                <h3>Price Details</h3>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <span class="text-muted">${{ request_to_book.stay.listing.price }} x {{ request_to_book.stay.nights }} nights</span> 
+                                    </div>
+                                    <div class="mb-3">
+                                        <span class="text-muted">Cleaning fee</span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <span class="text-muted">Taxes</span>
+                                    </div>
+                                </div>
+            
+                                <div class="col-6 d-flex justify-content-end">
+                                    <div class="mb-3">
+                                        <span class="text-muted">${{ request_to_book.stay.price }} USD</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</dialog>

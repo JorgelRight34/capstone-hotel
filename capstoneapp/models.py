@@ -17,10 +17,10 @@ class User(AbstractUser):
         return self.username
     
 
-    def has_reserved(self, item):
-        listing = Listing.objects.get(pk=item)
+    def has_reserved(self, listing):
+        listing = Listing.objects.get(pk=listing)
         try:
-            Stay.objects.get(listing=listing, buyer=self)
+            Stay.objects.filter(listing=listing, buyer=self).first()
         except:
             return False
         return True
@@ -74,7 +74,7 @@ def create_user_wishlist(sender, instance, created, **kwargs):
 
 class WishlistListing(models.Model):
     wishlist = models.ForeignKey(Wishlist, related_name='listings', on_delete=models.CASCADE, blank=False, null=False)
-    listing = models.ForeignKey('Listing', related_name='listings', on_delete=models.CASCADE, blank=False, null=False)
+    listing = models.ForeignKey('Listing', related_name='wishlists', on_delete=models.CASCADE, blank=False, null=False)
 
     
     def __str__(self):
@@ -191,12 +191,12 @@ class Listing(models.Model):
     
     @staticmethod
     def render_posts_json(posts, user):
-        posts_json = {}
+        posts_json = []
 
         for post in posts:
             if user.wishlist.is_in_wishlist(post):
                 post.is_in_wishlist = True
-            posts_json[f'{post.id}'] = render_to_string('post.html', {'post': post})
+            posts_json.append(render_to_string('post.html', {'post': post}))
 
         return posts_json     
 
@@ -237,66 +237,51 @@ class Stay(models.Model):
 
     def __str__(self):
         return f"Dates: {self.check_in}-{self.check_out} | Guests: 2 | Price Details {self.listing.price} x {self.nights} nights | Total (USD) ${self.price}"
-
-
-"""class Post(models.Model):
-    author = models.ForeignKey(User, related_name='posts', on_delete=models.CASCADE, blank=False, null=False)
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    price = models.FloatField()
-    rating = models.FloatField(default=0)
-    attributes = models.JSONField(blank=True, null=True)
-    category = models.ForeignKey(Category, related_name="posts", on_delete=models.CASCADE, blank=True, null=True)
-    quantity = models.IntegerField(default=1)
-    stripe_id = models.TextField()
-    date = models.DateTimeField(auto_now_add=True)
-
-
-    def __str__(self):
-        return f"Title: {self.title}, Description: {self.description}, Date: {self.date}"
     
 
     def serialize(self):
         return {
-            "id": f"{self.id}",
-            "author": self.author.username,
-            "title": self.title,
-            "description": self.description,
-            "price": self.price,
-            "attributes": self.attributes,
-            "images": [image.image.url for image in self.images.all()],
-            "date": {
-                "day": self.date.day,
-                "month": self.date.month,
-                "year": self.date.year
-            },
-            "attributes": self.attributes
+            'id': self.id,
+            'buyer': self.buyer.username,
+            'listing': self.listing.serialize(),
+            'check_in': self.check_in,
+            'check_out': self.check_out,
+            'date': self.date,
+            'adults': self.adults,
+            'children': self.children,
+            'infants': self.infants,
+            'pets': self.pets,
+            'nights': self.nights,
+            'price': self.price
         }
+
+
+class Request(models.Model):
+    notificator = models.ForeignKey(User, related_name='made_requests', blank=False, null=False, on_delete=models.CASCADE)
+    receiver = models.ForeignKey(User, related_name='requests', blank=False, null=False, on_delete=models.CASCADE)
+    request = models.ForeignKey(Listing, related_name='requests', blank=False, null=False, on_delete=models.CASCADE)
+    stay = models.OneToOneField(Stay, related_name='request', blank=False, null=False, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, default='pending')
+
+
+    def __str__(self):
+        return f"{self.notificator}'s request for {self.request.title} ({self.request.category})"
     
 
-    def set_rating(self, rating):
-        # Avoid ratings greater than 5 and lower than 0
-        if rating > 5 or rating < 0:
-            raise ValueError("Ratings can't be greather than 5 nor lower than 0")
-        
-        ratingSum = rating
-        ratings = self.ratings.all()    # All ratings except the current one
+    def serialize(self):
+        return {
+            "id": self.id,
+            "notificator": self.notificator.username,
+            "receiver": self.receiver.username,
+            "stay": self.stay.serialize(),
+            "notification": str(self)
+        }
 
-        for rating in self.ratings.all():
-            ratingSum += rating.rating
 
-        # Add 1 to len(ratings) because current rating is not being counted
-        self.rating = ratingSum / (len(ratings) + 1) 
-        self.save()
-
+    @staticmethod
+    def serialize_requests(requests):
+        return [request.serialize() for request in requests]
     
     @staticmethod
-    def render_posts_json(posts, user):
-        posts_json = {}
-
-        for post in posts:
-            if user.cart.is_in_cart(post):
-                post.is_in_cart = True
-            posts_json[f'{post.id}'] = render_to_string('post.html', {'post': post})
-
-        return posts_json"""
+    def render_requests_json(requests):
+        return [render_to_string('request_details.html', {'request_to_book': request}) for request in requests]

@@ -1,10 +1,13 @@
 const categoriesOptions = Array.from(document.querySelectorAll('.category-link'));
 const indexPostsContainer = document.querySelector('.posts-container');
+const currentCategory = document.getElementById('current-category')
 
 
 const showCategoryPosts = async (event) => {
     const category = event.target;
-    const response = await fetch(`/category-posts/${category.dataset.category}`);
+    currentCategory.value = category.dataset.category;
+
+    const response = await fetch(`/search-posts?category=${category.dataset.category}`);
     let posts = await response.json();
 
     postsContainer.innerHTML = '';

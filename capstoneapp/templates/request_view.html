@@ -1,0 +1,11 @@
+{% extends '_base.html' %}
+
+{% load static %}
+
+{% block title %}{{ request_to_book.notificator.username }}'s Trip{% endblock %} 
+
+{% block body %}
+<div class="p-3 d-flex justify-content-center align-items-center">
+    {% include 'request.html' %}
+</div>
+{% endblock %}

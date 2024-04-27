@@ -45,18 +45,28 @@
                     <img src="{{ post.images.all.0.image.url }}" class="d-block w-100" alt="{{ post.title }}" style="height: 500px; object-fit: cover;">
                 </div> 
             {% endif %}
-            <div class="p-3 d-flex justify-content-center align-items-center rating-stars" id="rating-stars" data-item="{{ post.id }}">
-                {% if not has_reserved %}
-                    <i class="fa-regular fa-star mx-1 rating-star fs-1" id="1"></i>
-                    <i class="fa-regular fa-star mx-1 fs-1" id="2"></i>
-                    <i class="fa-regular fa-star mx-1 fs-1" id="3"></i>
-                    <i class="fa-regular fa-star mx-1 fs-1" id="4"></i>
-                    <i class="fa-regular fa-star mx-1 fs-1" id="5"></i>
-                    <form class="d-none" method="post" id="rating-form">
-                        {% csrf_token %}
-                        <input type="hidden" name="rating" value=""/>
-                    </form>
-                {% endif %}
+            <div class="p-3">
+                <div class="p-3 container border rounded">
+                    <div class="mb-3 d-flex justify-content-center align-items-center">
+                        <h4>{{ post.rating }}</h4>
+                    </div>
+                    <div class="d-flex justify-content-center align-items-center mb-3 rating-stars" id="rating-stars" data-item="{{ post.id }}">
+                        {% if has_reserved %}
+                            <i class="fa-regular fa-star mx-1 rating-star fs-2" id="1"></i>
+                            <i class="fa-regular fa-star mx-1 fs-2" id="2"></i>
+                            <i class="fa-regular fa-star mx-1 fs-2" id="3"></i>
+                            <i class="fa-regular fa-star mx-1 fs-2" id="4"></i>
+                            <i class="fa-regular fa-star mx-1 fs-2" id="5"></i>
+                            <form class="d-none" method="post" id="rating-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="rating" value=""/>
+                            </form>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-center">
+                        <span class="text-muted">({{ post.ratings.all|length }} reviews)</span>
+                    </div>
+                </div>
             </div>    
         </div>
         <div class="col p-3">
@@ -127,6 +137,7 @@
 
                     <div class="col-3 d-flex">
                         <!-- Update and delete options-->
+                        {% if post.author == user %}
                         <div class="dropdown mx-3">
                             <div class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16">
@@ -146,35 +157,35 @@
                             </li>
                             </ul>
                         </div>
-
+                        {% endif %}
                         <!-- Wishlist -->
                         {% if post.is_in_wishlist %}
-                            <span class="add-to-cart" data-item="{{ post.id }}" style="display: none;">
-                                <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
-                                Save
-                            </span>
-                            <span class="remove-cart-item" data-item="{{ post.id }}">
-                                <i class="fa-solid fa-heart" data-item="{{ post.id }}"></i>
-                                Unsave
-                            </span>
+                        <span class="add-to-cart" data-item="{{ post.id }}" style="display: none;">
+                            <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
+                            Save
+                        </span>
+                        <span class="remove-cart-item" data-item="{{ post.id }}">
+                            <i class="fa-solid fa-heart" data-item="{{ post.id }}"></i>
+                            Unsave
+                        </span>
                         {% elif user.is_authenticated %}
-                            <span class="add-to-cart" data-item="{{ post.id }}">
-                                <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
-                                Save
-                            </span>
-                            <span class="remove-cart-item" data-item="{{ post.id }}" style="display: none;"> 
-                                <i class="fa-solid fa-heart" data-item="{{ post.id }}"></i>
-                                Unsave
-                            </span>
+                        <span class="add-to-cart" data-item="{{ post.id }}">
+                            <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
+                            Save
+                        </span>
+                        <span class="remove-cart-item" data-item="{{ post.id }}" style="display: none;"> 
+                            <i class="fa-solid fa-heart" data-item="{{ post.id }}"></i>
+                            Unsave
+                        </span>
                         {% else %}
-                            <a class="text-decoration-none text-dark" href="{% url 'login' %}?next=/post/{{ post.id }}">
-                                <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
-                                Save
-                            </a>
-                            <a class="text-decoration-none text-dark" href="{% url 'login' %}?next=/post/{{ post.id }}" style="display: none;">
-                                <i class="fa-solid fa-heart"></i>
-                                Unsave
-                            </a>
+                        <a class="text-decoration-none text-dark" href="{% url 'login' %}?next=/post/{{ post.id }}">
+                            <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
+                            Save
+                        </a>
+                        <a class="text-decoration-none text-dark" href="{% url 'login' %}?next=/post/{{ post.id }}" style="display: none;">
+                            <i class="fa-solid fa-heart"></i>
+                            Unsave
+                        </a>
                         {% endif %}
                     </div>
         
@@ -222,7 +233,7 @@
                         <div class="container bg-white rounded border">
                             <!-- Price -->
                             <div class="mb-3 d-flex align-items-center p-1">
-                                <h3>${{ post.price }}</h3> <span class="text-muted mx-3">night</span>
+                                <h3 id="post-price">${{ post.price }}</h3> <span class="text-muted mx-3">night</span>
                             </div>
                             <!-- Check In & Check Out -->
                             <div class="mb-3 d-flex">
@@ -244,7 +255,7 @@
                                 <div class="dropdown">
                                     <!-- Trigger -->   
                                     <div class="form-floating" type="button" id="guests" aria-expanded="false">
-                                        <span class="form-control" id="guests-text">1 Adult</span>
+                                        <span class="form-control dropdown-toggle" id="guests-text">1 Adult</span>
                                         <label for="guests-text">Guests</label>
                                     </div>               
                                     <!-- Dropdown -->
@@ -336,18 +347,6 @@
                             <div class="mb-3 p-1">
                                 <input type="button" id="reserve-button" class="btn btn-success w-100" value="Reserve">
                             </div>
-                            <!-- Stripe
-                            <div class="p-1 mb-3 d-none">
-                                <i class="fa-brands fa-cc-stripe"></i>
-                                <script src="https://checkout.stripe.com/checkout.js" class="stripe-button" id="stripe-button"
-                                data-key="{{ stripe_key }}"
-                                data-description="{{ post.title }}"
-                                data-amount="{{ post.price }}"
-                                data-label = "Reserve"
-                                data-locale="auto">
-                                </script>
-                            </div> 
-                        --> 
                         </div>
                     </form>
                 </div>

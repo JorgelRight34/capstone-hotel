@@ -136,6 +136,11 @@
         flex-direction: column;
     }
 
+    /*.post-details .column {
+        width: 100%;
+        margin-bottom: 0.75rem;
+    }*/
+
     .bottom-hr {
        display: none;
     }
