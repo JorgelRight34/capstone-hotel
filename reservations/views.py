@@ -10,7 +10,7 @@ from django.core.paginator import EmptyPage, Paginator, PageNotAnInteger
 from datetime import datetime
 from django.db.models import Q
 
-from .models import Request, Stay
+from .models import Stay
 from listings.models import Listing
 
 stripe.api_key = settings.SECRET_STRIPE_TEST_KEY
@@ -20,10 +20,10 @@ ITEMS_PER_PAGE = 5
 
 # Create your views here.
 @login_required
-def accept_reservation(request, reservation):
-    request_to_book = get_object_or_404(Request, pk=reservation)
+def accept_request(request, reservation):
+    request_to_book = get_object_or_404(Stay, pk=reservation)
 
-    if request_to_book.notificator != request.user:
+    if request_to_book.buyer != request.user:
         return HttpResponse(status=405)
     
     # Accept reservation
@@ -34,8 +34,8 @@ def accept_reservation(request, reservation):
 
 
 @login_required
-def decline_reservation(request, reservation):
-    request_to_book = get_object_or_404(Request, pk=reservation)
+def decline_request(request, reservation):
+    request_to_book = get_object_or_404(Stay, pk=reservation)
 
     if request_to_book.notificator != request.user:
         return HttpResponse(status=405)
@@ -49,7 +49,7 @@ def decline_reservation(request, reservation):
 
 @login_required
 def notifications(request):
-    return JsonResponse(Request.serialize_requests(request.user.requests.all()), safe=False)
+    return JsonResponse(Stay.serialize_requests(request.user.stays.all()), safe=False)
 
 
 def paginate(paginator, page):
@@ -68,15 +68,20 @@ def paginate(paginator, page):
 def reserve(request, listing):
     listing = get_object_or_404(Listing, pk=listing)
 
+    # Get check in and check out
+    check_in =  datetime.strptime(request.GET.get('check-in') or request.POST['check-in'], '%Y-%m-%d').date()
+    check_out = datetime.strptime(request.GET.get('check-out') or request.POST['check-out'], '%Y-%m-%d').date()
+
+    # Avoid having a stay at the same time of an accepted stay request
+    if listing.last_stay.check_out <= check_out and listing.last_stay.check_in >= check_in:
+        return HttpResponse(status=405)
+
     # Get guests
     adults = request.GET.get('adults') or 1
     children = request.GET.get('children') or 0
     infants = request.GET.get('infants') or 0
     pets = request.GET.get('pets') or 0
 
-    # Get check in and check out
-    check_in =  datetime.strptime(request.GET.get('check-in') or request.POST['check-in'], '%Y-%m-%d').date()
-    check_out = datetime.strptime(request.GET.get('check-out') or request.POST['check-out'], '%Y-%m-%d').date()
     nights = (check_out - check_in).days
 
     if request.method == 'POST':
@@ -94,7 +99,7 @@ def reserve(request, listing):
                 source=request.POST['stripeToken'],
             )
 
-            # Create a stay
+            # Create a request for stay
             stay = Stay(buyer=request.user, 
                         listing=listing, 
                         adults=adults,
@@ -105,15 +110,8 @@ def reserve(request, listing):
                         price=amount, 
                         check_in=check_in, 
                         check_out=check_out,
-
                     )
-            print(stay)
             stay.save()
-
-            # Create the request to book
-            request = Request(notificator=request.user, receiver=listing.author, request=listing, stay=stay)
-            print(request)
-            request.save()
 
             return JsonResponse({"Worked": "True"})
         except:
@@ -127,13 +125,14 @@ def reserve(request, listing):
                'nights': nights, 
                'total': listing.price * nights,
                'check_in': request.GET['check-in'],
-               'check_out': request.GET['check-out']
+               'check_out': request.GET['check-out'],
+               'last_check_out': listing.last_stay.check_out.strftime('%Y-%m-%d') or datetime.now().strftime('%Y-%m-%d')
     }
 
     return render(request, 'reserve.html', {
         'listing': listing,
         'stripe_key': settings.STRIPE_TEST_PUBLISHABLE_KEY,
-        'details': details
+        'details': details,
     })
 
 
@@ -143,7 +142,7 @@ def requests_to_book(request):
     pending_page = request.GET.get('pending_page')
 
     # Paginator
-    pending_requests = Paginator(request.user.requests.filter(status='pending'), ITEMS_PER_PAGE)
+    pending_requests = Paginator(request.user.stays.filter(status='pending'), ITEMS_PER_PAGE)
     pending_requests = paginate(pending_requests, pending_page)
 
 
@@ -151,7 +150,7 @@ def requests_to_book(request):
     accepted_page = request.GET.get('accepted_page')
 
     # Paginator
-    accepted_requests = Paginator(request.user.requests.filter(status='accepted'), ITEMS_PER_PAGE)
+    accepted_requests = Paginator(request.user.stays.filter(status='accepted'), ITEMS_PER_PAGE)
     accepted_requests = paginate(accepted_requests, accepted_page)
 
 
@@ -159,7 +158,7 @@ def requests_to_book(request):
     declined_page = request.GET.get('declined_page')
 
     # Paginator
-    declined_requests = Paginator(request.user.requests.filter(status='declined'), ITEMS_PER_PAGE)
+    declined_requests = Paginator(request.user.stays.filter(status='declined'), ITEMS_PER_PAGE)
     declined_requests = paginate(declined_requests, declined_page)
 
 
@@ -171,7 +170,7 @@ def requests_to_book(request):
 
 
 def request_to_book(request, id):
-    request_to_book = get_object_or_404(Request, pk=id)
+    request_to_book = get_object_or_404(Stay, pk=id)
     return render(request, 'request_view.html', {'request_to_book': request_to_book})
 
 
@@ -182,13 +181,13 @@ def search_requests(request):
     status = request.GET.get('status') or 'pending'
 
     # Get requests
-    requests = Request.objects.filter(
-        Q(stay__listing__title__icontains=q) |
-        Q(stay__listing__description__icontains=q) |
-        Q(stay__listing__category__category__icontains=q) |
-        Q(stay__listing__price__icontains=q),
+    requests = Stay.objects.filter(
+        Q(listing__title__icontains=q) |
+        Q(listing__description__icontains=q) |
+        Q(listing__category__category__icontains=q) |
+        Q(listing__price__icontains=q),
         status=status
-    ).order_by(order)
+    ).order_by(f'listing__{order}')
 
     # Return 404 if not matches
     if not requests:
@@ -206,4 +205,4 @@ def search_requests(request):
         return HttpResponse(status=404)
     
 
-    return JsonResponse(Request.render_requests_json(requests), safe=False)
+    return JsonResponse(Stay.render_requests_json(requests), safe=False)

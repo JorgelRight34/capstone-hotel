@@ -10,8 +10,9 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonRespons
 from django.shortcuts import get_object_or_404,  render, redirect
 from django.urls import reverse
 from django.template.loader import render_to_string
+from datetime import datetime
 
-from .models import Listing, ListingImage, Comment, Category, Rating
+from .models import Amenitie, Listing, ListingImage, Comment, Category, Rating
 from accounts.models import User
 
 ITEMS_PER_PAGE = 10
@@ -68,6 +69,10 @@ def index(request):
         'posts': posts,
         'categories': categories
     })
+
+
+def amenities(request):
+    return JsonResponse(Amenitie.serialize_ammenities(), safe=False)
 
 
 @login_required
@@ -153,25 +158,14 @@ def new_post(request):
         category = get_object_or_404(Category, pk=category)
         post.author, post.title, post.description, post.price, post.category = author, title, description, price, category
 
-        # Get fields values
-        fields = []
-        for field in request.POST.getlist('field'):
-            if field:
-                fields.append(field)
-
-        # Get values values
-        values = []
-        for value in request.POST.getlist('value'):
-            if value:
-                values.append(value)
-
-        # Construct json data
-        json_dict = {}
-        for i in range(len(fields)):
-            json_dict[fields[i]] = values[i]
-
-        post.attributes = json_dict
-
+        # Get amenities
+        if amenities := request.POST.getlist('amenitie'):
+            amenities = []
+            for amenitie in amenities:
+                amenitie = Amenitie.objects.get(pk=amenitie)
+                amenitie.listing = post
+                amenities.append(str(amenitie))
+    
         # Register item in stripe
         stripe.api_key = settings.SECRET_STRIPE_TEST_KEY
 
@@ -180,7 +174,7 @@ def new_post(request):
             name=post.title,
             description=post.description,
             type='good',
-            metadata=json_dict
+            metadata=amenities
         )
 
         # Create price representing current product's price
@@ -229,12 +223,14 @@ def post_details(request, post):
     else:
         has_reserved = False
 
+
     return render(request, 'post_details.html', {
         'post': post,
         'attributes': attributes,
         'comments': comments,
         'stripe_key': settings.STRIPE_TEST_PUBLISHABLE_KEY,
-        'has_reserved': has_reserved
+        'has_reserved': has_reserved,
+        'last_check_out': post.last_stay.check_out.strftime('%Y-%m-%d') or datetime.now().strftime('%Y-%m-%d')
     })
 
 
@@ -343,10 +339,10 @@ def search_posts(request):
             Q(description__icontains=q) | 
             Q(category__category__icontains=q), 
             **paginator_parameters
-        ).order_by(f'-{order}')
+        ).order_by(order)
     else:
         # Unpack parameters 
-        posts = Listing.objects.filter(**paginator_parameters).order_by(f'-{order}')
+        posts = Listing.objects.filter(**paginator_parameters).order_by(order)
 
     # If wishlist was defined then get all posts from wishlist
     if wishlist:

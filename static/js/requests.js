@@ -3,8 +3,6 @@ const closeDetailButtons = Array.from(document.querySelectorAll('.close-details'
 const acceptReservationButtons = Array.from(document.querySelectorAll('.accept-reservation'));
 const declineReservationButtons = Array.from(document.querySelectorAll('.decline-reservation'));
 
-const requests = Array.from(document.querySelectorAll('.request'));
-
 const searchRequestsInput = document.getElementById('search-requests');
 const orderRequestsSelect = document.querySelector('select[name="select-requests-order"]');
 
@@ -33,11 +31,11 @@ const showSection = (event) => {
 
 
 const renderRatingStars = () => {
-    console.log(requests);
+    const requests = Array.from(document.querySelectorAll('.request'));
+
     requests.forEach(request => {
         const ratingStars = Array.from(request.querySelectorAll('.rating-star'));
         const rating = parseFloat(request.querySelector('#rating').textContent);
-        console.log(rating);
 
         let sub = rating;
         for (const star of ratingStars) {
@@ -68,43 +66,58 @@ const closeDetails = (event) => {
 };
 
 
-const acceptReservation = async (event) => {
-    const response = await fetch(`/accept-reservation/${event.target.dataset.reservation}`);
+const acceptRequest = async (event) => {
+    const request = event.target.dataset.reservation;
+    const requestDiv = document.getElementById(`request-${request}`);
+    const response = await fetch(`/accept-request/${request}`);
 
     if (response.status === 204) {
         loadMessage('<b>Accepted Reservation</b> the reservation has been succesfully accepted.', 'success');
     } else {
         loadMessage('<b>Reservation Error</b> an error ocurred.', 'danger');
+        return;
     };
+
+    requestDiv.remove();
+    searchRequests(currentSectionURL='accepted');
 };
 
 
-const declineReservation = async (event) => {
-    const response = await fetch(`/decline-reservation/${event.target.dataset.reservation}`);
+const declineRequest = async (event) => {
+    const request = event.target.dataset.reservation;
+    const requestDiv = document.getElementById(`request-${request}`);
+    const response = await fetch(`/decline-request/${request}`);
 
     if (response.status === 204) {
         loadMessage('<b>Declined Reservation</b> the reservation has been succesfully declined.', 'success');
     } else {
         loadMessage('<b>Reservation Error</b> an error ocurred.', 'danger');
+        return;
     };
+
+    requestDiv.remove();
+    searchRequests(currentSectionURL='declined');
 };
 
 
-const searchRequests = async () => {
+const searchRequests = async (currentSectionURL=currentSection) => {
     const response = await fetch(`
-        /search-requests?order_by=stay__listing__${orderRequestsSelect.value}&q=${searchRequestsInput.value || ''}&status=${currentSection}&page=${page}
+        /search-requests?order_by=${orderRequestsSelect.value}&q=${searchRequestsInput.value || ''}&status=${currentSectionURL}&page=${page}
         `
     );
     if (response.status === 404) {
+        page-=1;
         return;
     }
     const requests = await response.json();
 
-    const section = sections[`#${currentSection}`]
+    const section = sections[`#${currentSectionURL}`]
     section.innerHTML = '';
     for (const request of requests) {
         section.insertAdjacentHTML('beforeend', request);
     };
+
+    renderRatingStars();
 }
 
 const loadMoreRequests = () => {
@@ -116,10 +129,10 @@ const loadMoreRequests = () => {
 }
 
 
-acceptReservationButtons.forEach(button => button.addEventListener('click', (event) => acceptReservation(event)));
+acceptReservationButtons.forEach(button => button.addEventListener('click', (event) => acceptRequest(event)));
 detailButtons.forEach(button => button.addEventListener('click', (event) => openDetails(event)));
 closeDetailButtons.forEach(button => button.addEventListener('click', (event) => closeDetails(event)));
-declineReservationButtons.forEach(button => button.addEventListener('click', (event) => declineReservation(event)));
+declineReservationButtons.forEach(button => button.addEventListener('click', (event) => declineRequest(event)));
 requestLinks.forEach(link => link.addEventListener('click', (event) => showSection(event)));
 orderRequestsSelect.onchange = searchRequests;
 searchRequestsInput.onkeyup = searchRequests;

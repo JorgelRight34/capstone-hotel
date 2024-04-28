@@ -12,15 +12,15 @@ const removeGuests = Array.from(reserveForm.querySelectorAll('.remove-guests'));
 const guestsText = reserveForm.querySelector('#guests-text');
 const guests = {
     adults: {
-        quantity: 1,
+        quantity: reserveForm.querySelector('input[name="adults"]').value || 1,
         input: reserveForm.querySelector('input[name="adults"]')
     },
     children: {
-        quantity: 0,
+        quantity: reserveForm.querySelector('input[name="children"]').value || 0,
         input: reserveForm.querySelector('input[name="children"]')
     },
     infants: {
-        quantity: 0,
+        quantity: reserveForm.querySelector('input[name="infants"]').value || 0,
         input: reserveForm.querySelector('input[name="infants"]')
     }
 };
@@ -28,6 +28,7 @@ const guests = {
 
 const updateGuestText = () => {
     let text = ''
+
     if (guests.adults.quantity) {
         text += `${guests.adults.quantity} adults`;
     }
@@ -37,6 +38,7 @@ const updateGuestText = () => {
     if (guests.infants.quantity) {
         text += `, ${guests.infants.quantity} infants`;
     }
+    
     guestsText.textContent = text;
 };
 
@@ -125,20 +127,7 @@ const submitReserveForm = async (event) => {
 };
 
 
-const setMinAndMaxDates = () => {
-    const currentDate = new Date();
-
-    const year = currentDate.getFullYear();
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-    const day = String(currentDate.getDate() + 1).padStart(2, '0');
-    const formatedDate = `${year}-${month}-${day}`;
-
-    checkInInput.min = formatedDate
-    checkOutInput.min = formatedDate
-};
-
-
-setMinAndMaxDates();
+updateGuestText();
 reserveButton.addEventListener('click', (event) => validateReserveForm(event));
 guestsForm.onclick = showGuestsDropdownForm;
 addGuests.forEach(button => button.addEventListener('click', (event) => addGuest(event)));

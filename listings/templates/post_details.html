@@ -7,7 +7,7 @@
 {% block body %}
 <div class="container p-3">
     <div class="container bg-white row p-0 border rounded post-details">
-        <!-- Right Column -->
+        <!-- Right Container -->
         <div class="col p-0">
             {% if post.images.all|length > 1 %}
                 <div id="postImagesCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="false">
@@ -48,20 +48,14 @@
             <div class="p-3">
                 <div class="p-3 container border rounded">
                     <div class="mb-3 d-flex justify-content-center align-items-center">
-                        <h4>{{ post.rating }}</h4>
+                        <h4 id="rating">{{ post.rating }}</h4>
                     </div>
-                    <div class="d-flex justify-content-center align-items-center mb-3 rating-stars" id="rating-stars" data-item="{{ post.id }}">
-                        {% if has_reserved %}
-                            <i class="fa-regular fa-star mx-1 rating-star fs-2" id="1"></i>
-                            <i class="fa-regular fa-star mx-1 fs-2" id="2"></i>
-                            <i class="fa-regular fa-star mx-1 fs-2" id="3"></i>
-                            <i class="fa-regular fa-star mx-1 fs-2" id="4"></i>
-                            <i class="fa-regular fa-star mx-1 fs-2" id="5"></i>
-                            <form class="d-none" method="post" id="rating-form">
-                                {% csrf_token %}
-                                <input type="hidden" name="rating" value=""/>
-                            </form>
-                        {% endif %}
+                    <div class="d-flex justify-content-center align-items-center mb-3">
+                        <i class="fa-regular fa-star mx-1 rating-star fs-2" id="1"></i>
+                        <i class="fa-regular fa-star mx-1 rating-star fs-2" id="2"></i>
+                        <i class="fa-regular fa-star mx-1 rating-star fs-2" id="3"></i>
+                        <i class="fa-regular fa-star mx-1 rating-star fs-2" id="4"></i>
+                        <i class="fa-regular fa-star mx-1 rating-star fs-2" id="5"></i>
                     </div>
                     <div class="d-flex justify-content-center">
                         <span class="text-muted">({{ post.ratings.all|length }} reviews)</span>
@@ -69,7 +63,10 @@
                 </div>
             </div>    
         </div>
+
+        <!-- Second Container -->
         <div class="col p-3">
+            {% if user.is_authenticated %}
             <!-- Update Form -->
             <form action="{% url 'update_post' %}" method="post" id="update-post-form" style="display: none;">
                 {% csrf_token %}
@@ -97,37 +94,15 @@
                 <div class="mb-3">
                     <textarea class="form-control description" name="description">{{ post.description }}</textarea>
                 </div>
-                <div class="mb-3">
-                    <hr>
-                    <input type="hidden" value="{{ post.id }}" id="post-id">
-                    {% if attributes %}
-                        <table id="attributes-table" class="table">
-                            <thead>
-                                <th>Field</th>
-                                <th>Value</th>
-                            </thead>
-                                <tbody id="attributes-table-body">
-                                    {% for key, value in attributes.items %}
-                                        <tr>
-                                            <td>
-                                                <input class="form-control" name="field" value="{{ key }}"/>
-                                            </td>
-                                            <td>
-                                                <input class="form-control" name="value" value="{{ value }}"/>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                        </table>
-                    {% endif %}
-                </div>
                 <div id="post-options">
                     <input type="submit" class="btn btn-outline-success"/>
                     <button class="btn btn-outline-danger" id="cancel-update-post-form">Cancel</button>
                 </div>
                 <input type="hidden" name="post" value="{{ post.id }}"/>
             </form>
-            
+            {% endif %}
+            <!-- Update Form -->
+    
             <!-- Info -->
             <div id="info">
                 <div class="row mb-3" id="post-details-header">
@@ -208,25 +183,17 @@
                 </div>
                 <div class="mb-3">
                     <hr>
-                    <input type="hidden" value="{{ post.id }}" id="post-id">
-                    {% if attributes %}
-                        <table id="attributes-table" class="table">
-                            <thead>
-                                <th>Field</th>
-                                <th>Value</th>
-                            </thead>
-                                <tbody id="attributes-table-body">
-                                    {% for key, value in attributes.items %}
-                                        <tr>
-                                            <td class="field">{{ key }}</td>
-                                            <td class="value">{{ value }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                        </table>
-                    {% endif %}
+                    <h3 class="mb-3 mx-3">Amenities</h3>
+                    <div class="d-flex">
+                        {% for amenitie in post.amenities.all %}
+                            <div class="container border rounded shadow-sm p-3 mx-3 amenitie">
+                                <i class="{{ amenitie.icon }} mx-3"></i> {{ amenitie }}
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
                 <div id="post-options">
+                    <hr>
                     <!-- Payment form -->
                     <form action="{% url 'reserve' post.id %}" method="get" class="mb-3" id="reserve-form" data-listing="{{ post.id }}">
                         {% csrf_token %}
@@ -239,13 +206,13 @@
                             <div class="mb-3 d-flex">
                                 <div class="p-1 w-50">
                                     <div class="form-floating">
-                                        <input type="date" class="form-control" id="check-in" name="check-in" required>
+                                        <input type="date" class="form-control" id="check-in" name="check-in" min="{{ last_check_out }}" value="{{ last_check_out }}" required>
                                         <label for="check-in">Check In</label>
                                     </div>
                                 </div>
                                 <div class="p-1 w-50">
                                     <div class="form-floating">
-                                        <input type="date" class="form-control" id="check-out" name="check-out" required>
+                                        <input type="date" class="form-control" id="check-out" name="check-out" min="{{ last_check_out }}" value="{{ last_check_out }}" required>
                                         <label for="check-out">Check Out</label>
                                     </div>
                                 </div>
@@ -353,15 +320,29 @@
             </div>
         </div>
         <hr>
+        <!-- Comments & Ratings Container -->
         <div class="p-3">
             <div class="mb-3">
                 <h2>Comments</h2>
             </div>
             {% if user.is_authenticated and has_reserved %}
                 <div class="p-3 container border">
-                    <div>
+                    <div class="d-flex align-items-center">
                         <img src="{{ user.profile_pic.url }}" class="profile-pic">
                         <a class="mx-3 text-decoration-none" href="{% url 'profile' user %}">{{ user }}</a>
+                        <div class="d-flex justify-content-center align-items-center rating-stars" id="rating-stars" data-item="{{ post.id }}">
+                            {% if has_reserved %}
+                                <i class="fa-regular fa-star mx-1 fs-6" id="1"></i>
+                                <i class="fa-regular fa-star mx-1 fs-6" id="2"></i>
+                                <i class="fa-regular fa-star mx-1 fs-6" id="3"></i>
+                                <i class="fa-regular fa-star mx-1 fs-6" id="4"></i>
+                                <i class="fa-regular fa-star mx-1 fs-6" id="5"></i>
+                                <form class="d-none" method="post" id="rating-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="rating" value=""/>
+                                </form>
+                            {% endif %}
+                        </div>
                     </div>
                     <hr>
                     <form action="{% url 'comment' post.id %}" method="post" id="comment-form" data-post="{{ post.id }}">

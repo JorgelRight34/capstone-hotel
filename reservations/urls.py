@@ -4,8 +4,8 @@ from . import views
 
 
 urlpatterns = [
-    path('accept-reservation/<int:reservation>', views.accept_reservation, name='accept_reservation'),
-    path('decline-reservation/<int:reservation>', views.decline_reservation, name='decline_reservation'),
+    path('accept-request/<int:reservation>', views.accept_request, name='accept_request'),
+    path('decline-request/<int:reservation>', views.decline_request, name='decline_request'),
     path('notifications', views.notifications, name='notifications'),
     path('reserve/<int:listing>', views.reserve, name='reserve'),
     path('requests-to-book', views.requests_to_book, name='requests'),

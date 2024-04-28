@@ -1,3 +1,13 @@
+.amenitie {
+    color: #666666;
+}
+
+.amenitie:hover {
+    cursor: pointer;
+    color: black;
+    border-bottom: 2px solid black;
+}
+
 .post-image-col {
     position: relative;
 }

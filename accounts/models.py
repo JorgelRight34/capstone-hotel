@@ -4,7 +4,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 
 from listings.models import Listing
-from reservations.models import Stay, Request
+from reservations.models import Stay
 
 
 # Create your models here.
@@ -20,11 +20,9 @@ class User(AbstractUser):
 
     def has_reserved(self, listing):
         listing = Listing.objects.get(pk=listing)
-        stay = Stay.objects.filter(listing=listing, buyer=self).first()
-        if Request.objects.filter(notificator=self, request=listing, stay=stay, status='accepted'):
+        if Stay.objects.filter(buyer=self, listing=listing, status='accepted'):
             return True
         return False
-
 
 
     @property

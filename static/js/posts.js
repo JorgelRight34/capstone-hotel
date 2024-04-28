@@ -22,9 +22,46 @@ const infoDiv = document.getElementById('info');
 const updatePostForm = document.getElementById('update-post-form');
 const cancelUpdatePostFormButton = document.getElementById('cancel-update-post-form');
 
+const amenitiesContainer = newPostDialog.querySelector('#ammenities');
+
 let postTitle = document.getElementById('post-title');
 let postPrice = document.getElementById('post-price');
 let postDescription = document.getElementById('post-description');
+
+
+const renderAmenities = async () => {
+    const response = await fetch('/amenities');
+    const amenities = await response.json();
+
+    for (const amenitie of amenities) {
+        const html = `
+            <label class="container border rounded shadow-sm p-3 mx-3 amenitie">
+                <input type="radio" id="${amenitie.id}" name="amenitie" class="d-none" value="${amenitie.amenitie}">
+                <i class="${amenitie.icon} mx-3"></i> ${amenitie.amenitie}
+            </label>
+        `;
+        amenitiesContainer.insertAdjacentHTML('beforeend', html);
+    };
+
+    const amenitiesRadioButtons = Array.from(document.querySelectorAll('input[name="amenitie"]'));
+    amenitiesRadioButtons.forEach(button => button.addEventListener('click', (event) => fillNewPostRadioButton(event)));
+
+}
+
+const fillNewPostRadioButton = (event) => {
+    const button = event.target.parentNode
+    console.log("Color: ", button.style.color);
+    console.log(button)
+
+    if (button.style.color !== 'black') {
+        button.style.color = 'black';
+        button.style.backgroundColor = '#ccc';
+        button.style.border = '2px solid black';
+    } else {
+        button.style.color = '#666666'
+        button.style.border = '';
+    };
+};
 
 
 const loadPostEventListeners = () => {
@@ -60,6 +97,11 @@ const submitUpdatePostForm = async (event) => {
         method: 'POST',
         body: new FormData(updatePostForm)
     });
+
+    if (response.status !== 204) {
+        loadMessage(`<b>Error Uploading</b> There's been an error updating your post`, 'danger');
+        return;
+    }
 
     const post = await response.json();
 
@@ -139,11 +181,17 @@ const submitNewPostForm = async (event) => {
         body: new FormData(newPostForm)
     });
 
+    
+    if (response.status !== 204) {
+        loadMessage(`<b>Error Uploading</b> There's been an error uploading your post`, 'danger');
+        return;
+    }
+
     newPostFormTitle.value = '';
     newPostFormDescription.value = '';
     newPostFormPrice.value = '';
     imageInput.value = '';
-    firstFieldInput.value = '';
+    /*firstFieldInput.value = '';
     firstValueInput.value = '';
 
     const fileInputs = Array.from(document.querySelectorAll('input[name="image"]'));
@@ -163,11 +211,11 @@ const submitNewPostForm = async (event) => {
     for (let i = 1; i < valueInputs.length; i++) {
         valueInputs[i].parentNode.remove();
         valueInputs[i].remove();
-    };
+    };*/
 
     loadMessage('Post succesfully uploaded', 'success');
 
-    event.target.close();
+    newPostDialog.close();
 };
 
 
@@ -207,8 +255,8 @@ newPostBtn.addEventListener("click", showNewPostDialog);
 closeNewPostDialog.addEventListener("click", () => newPostDialog.close());
 imageInput.addEventListener('change', addFileInput);
 newPostForm.addEventListener('submit', (event) => submitNewPostForm(event));
-firstFieldInput.addEventListener('keyup', (event) => addTableRow(event));
-firstValueInput.addEventListener('keyup', (event) => addTableRow(event));
+// firstFieldInput.addEventListener('keyup', (event) => addTableRow(event));
+//firstValueInput.addEventListener('keyup', (event) => addTableRow(event));
 if (editPostButton) {
     editPostButton.addEventListener('click', editPostForm);
 };
@@ -221,5 +269,5 @@ if (updatePostForm) {
         submitUpdatePostForm(event);
     });
 };
-
 populateCategoryOptions();
+renderAmenities();

@@ -16,7 +16,7 @@
     </head>
     <body class="bg-light">
       <nav class="navbar navbar-expand-lg navbar-light bg-white">
-        <div class="row w-100">
+        <div class="row w-100 mx-auto">
           <!-- Logo -->
           <div class="col-3 col-md-3 col-sm-3 mx-0 navbar-logo d-flex justify-content-center align-items-center">
             <a class="navbar-brand" href="{% url 'index' %}">Capstone</a>
@@ -71,7 +71,7 @@
 
             <!-- Profile -->
             {% if user.is_authenticated %}
-            <div class="nav-item dropdown mx-3">
+            <div class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="{% url 'profile' user %}" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <img src="{{ user.profile_pic.url }}" class="profile-pic mx-1" height="20px"> <span class="navbar-username">{{ user }}</span> 
               </a>
@@ -108,7 +108,7 @@
         <dialog id="new-post-dialog" class="container border rounded">
             <form action="{% url 'new_post' %}" method="post" enctype="multipart/form-data" id="new-post-form">
                 {% csrf_token %}
-                <div class="form-group">
+                <div class="form-group mb-3">
                   <label class="form-label" for="title">Title</label>
                   <input class="form-control" id="new-post-form-title" name="title" required>
                 </div>
@@ -117,27 +117,40 @@
                       <label class="form-label" for="select-category">Category</label>
                       <select class="form-select" id="category-select" name="category" required>
                         <option>Select a category</option>
+                        {% for category_list in categories %}
+                          {% for category in category_list %}
+                            <option value="{{ category.id }}">{{ category }}</option>
+                          {% endfor %}
+                        {% endfor %}
                       </select>
                     </div>
                     <div class="col">
                       <label class="form-label" for="price">Price</label>
                       <input type="number" class="form-control" id="new-post-form-price" name="price" required>
                     </div>
+                    <div class="col">
+                      <label  class="form-label" for="location">Location</label>
+                      <select name="location" class="form-select">
+                        <option value="dominican-republic">Dominican Republic</option>
+                      </select>
+                    </div>
                 </div>
                 <div class="form-group mb-3">
                     <label  class="form-label" for="description">Description</label>
                     <textarea class="form-control" id="new-post-form-description" name="description" rows="3" required></textarea>
                 </div>
-                <div class="form-group mb-3">
-                  <label  class="form-label" for="location">Location</label>
-                  <select name="location">
-                    <option value="dominican-republic">Dominican Republic</option>
-                  </select>
-              </div>
-                <div class="form-group" id="file-inputs">
+                <div class="form-group mb-3" id="file-inputs">
                     <label class="form-label" for="image">Images</label>
                     <input type="file" class="form-control mb-3" accept="image/*" id="image" name="image" required>
                 </div>
+                <div class="form-group mb-3">
+                  <label class="form-label">Ammenities</label>
+                  <div class="d-flex" id="ammenities">
+                    <!-- Ammenities -->
+                  </div>
+                </div>
+                 
+                <!-- 
                 <div class="form-group" id="field-inputs">
                   <table class="table" id="fields-table">
                     <thead>
@@ -155,7 +168,7 @@
                       </tr>
                     </tbody>
                   </table>
-                </div>
+                </div> -->
                 <div class="form-group">
                     <input type="submit" class="btn btn-success">
                     <input type="button" class="btn btn-outline-success" value="Close" id="close-new-post-dialog">

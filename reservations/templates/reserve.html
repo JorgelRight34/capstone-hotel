@@ -22,13 +22,13 @@
                         <div class="d-flex">
                             <div class="p-1 w-50">
                                 <div class="form-floating">
-                                    <input type="date" class="form-control" id="check-in" name="check-in" value="{{ details.check_in }}" required>
+                                    <input type="date" class="form-control" id="check-in" name="check-in" min="{{ details.last_check_out }}" value="{{ details.check_in }}" required>
                                     <label for="check-in">Check In</label>
                                 </div>
                             </div>
                             <div class="p-1 w-50">
                                 <div class="form-floating">
-                                    <input type="date" class="form-control" id="check-out" name="check-out" value="{{ details.check_out }}" required>
+                                    <input type="date" class="form-control" id="check-out" name="check-out" min="{{ details.last_check_out }}" value="{{ details.check_out }}" required>
                                     <label for="check-out">Check Out</label>
                                 </div>
                             </div>
@@ -62,7 +62,7 @@
                                                         <i class="fa-solid fa-minus" data-guests-type="adults"></i>
                                                     </div>
                                                     <span class="mx-3" id="adults-number">
-                                                        1
+                                                        {{ details.adults }}
                                                     </span>
                                                     <div class="white-circle border shadow-sm add-guests" data-guests-type="adults">
                                                         <i class="fa-solid fa-plus" data-guests-type="adults"></i>
@@ -89,7 +89,7 @@
                                                         <i class="fa-solid fa-minus" data-guests-type="children"></i>
                                                     </div>
                                                     <span class="mx-3" id="children-number">
-                                                        0
+                                                        {{ details.children }}
                                                     </span>
                                                     <div class="white-circle border shadow-sm add-guests" data-guests-type="children">
                                                         <i class="fa-solid fa-plus" data-guests-type="children"></i>
@@ -103,7 +103,7 @@
                                 <li>
                                     <div class="dropdown-item">
                                         <div class="row">
-                                            <input type="hidden" name="infants">
+                                            <input type="hidden" name="infants" value="{{ details.infants }}">
                                             <!-- Label -->
                                             <div class="col-9">
                                                 <h6>Infants</h6>
@@ -116,7 +116,7 @@
                                                         <i class="fa-solid fa-minus" data-guests-type="infants"></i>
                                                     </div>
                                                     <span class="mx-3" id="infants-number">
-                                                        0
+                                                        {{ details.infants }}
                                                     </span>
                                                     <div class="white-circle border shadow-sm add-guests" data-guests-type="infants">
                                                         <i class="fa-solid fa-plus" data-guests-type="infants"></i>

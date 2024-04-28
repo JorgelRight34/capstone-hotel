@@ -1,10 +1,29 @@
 from django.db import models
 from django.template.loader import render_to_string
 
+from reservations.models import Stay
+
 
 # Create your models here.
+class Amenitie(models.Model):
+    amenitie = models.CharField(max_length=100, blank=False, null=False)
+    icon = models.CharField(max_length=50, blank=False, null=False)
+    listing = models.ManyToManyField('Listing', related_name='amenities', blank=True)
+
+    def __str__(self):
+        return self.amenitie
+    
+    
+    @staticmethod
+    def serialize_ammenities():
+        return [
+            {'id': amenitie.id, 'amenitie': amenitie.amenitie, 'icon': amenitie.icon} 
+            for amenitie in Amenitie.objects.all()
+        ]
+
+
 class Category(models.Model):
-    category = models.CharField(max_length=255, blank=False, null=False)
+    category = models.CharField(max_length=100, blank=False, null=False)
     icon = models.CharField(max_length=50, blank=False, null=False) 
 
 
@@ -76,6 +95,11 @@ class Listing(models.Model):
     def __str__(self):
         return f"Title: {self.title}, Description: {self.description}, Date: {self.date}"
     
+    @property
+    def last_stay(self):
+        stay = self.stays.filter(status='accepted').order_by('-date').first()
+        return stay
+
 
     def serialize(self):
         return {
