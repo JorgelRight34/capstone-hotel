@@ -23,10 +23,91 @@ const updatePostForm = document.getElementById('update-post-form');
 const cancelUpdatePostFormButton = document.getElementById('cancel-update-post-form');
 
 const amenitiesContainer = newPostDialog.querySelector('#ammenities');
+const imageInputs = Array.from(newPostDialog.querySelectorAll('input[name="image"]'));
+
+const addFieldButtons = Array.from(newPostDialog.querySelectorAll('.add-field'));
+const removeFieldButtons = Array.from(newPostDialog.querySelectorAll('.remove-field'));
+
+const imageInputsCarousel = newPostDialog.querySelector('#image-inputs');
+const imageInputsCarouselInner = imageInputsCarousel.querySelector('.carousel-inner');
+const imageInputsCarouselIndicators = imageInputsCarousel.querySelector('.carousel-indicators');
 
 let postTitle = document.getElementById('post-title');
 let postPrice = document.getElementById('post-price');
 let postDescription = document.getElementById('post-description');
+
+
+const uploadListingImage = (event) => {
+    const imageInput = event.target;
+    const image = imageInput.parentNode.querySelector('.new-listing-image');
+
+    if (imageInput.files && imageInput.files[0]) {
+        const fileReader = new FileReader();
+        fileReader.onload = (event) => {
+            image.innerHTML = `
+                <img src="${event.target.result}" class="img-fluid">
+            `;
+            loadAnotherImageInput();
+        };
+        fileReader.readAsDataURL(imageInput.files[0]);
+    } else {
+        image.innerHTML = `
+            <i class="fa-regular fa-image fs-1"></i>
+        `;
+    };
+};
+
+const loadAnotherImageInput = () => {
+    const imageInputs = Array.from(imageInputsCarousel.querySelectorAll('input[name="image"]'));
+    const lastImageInput = imageInputs[imageInputs.length - 1];
+
+    if (!lastImageInput.files && !lastImageInput.files[0]) {
+        return;
+    };
+
+    const slideTo = parseFloat(imageInputsCarouselIndicators.lastElementChild.dataset.bsSlideTo) + 1;
+    const carouselItem = `
+        <div class="carousel-item">
+            <label class="container border rounded d-flex align-items-center justify-content-center p-3" style="width: 300px; height: 200px;">
+                <input type="file" name="image" accept="image/*" class="d-none" onchange="uploadListingImage(event)">
+                <div class="new-listing-image">
+                    <i class="fa-regular fa-image fs-1"></i>
+                </div>
+            </label>
+        </div>
+    `;
+    const button = `
+        <button type="button" data-bs-target="#image-inputs" data-bs-slide-to="${slideTo}" aria-label="Slide ${slideTo + 1}"></button>
+    `;
+    imageInputsCarouselInner.insertAdjacentHTML('beforeend', carouselItem);
+    imageInputsCarouselIndicators.insertAdjacentHTML('beforeend', button);
+};
+
+
+const addField = (event) => {
+    const field = event.target.dataset.field;
+    const number = document.getElementById(`${field}-number`);
+    const numberInput = document.querySelector(`input[name="${field}"]`)
+    const sum = parseFloat(number.textContent) + 1;
+
+    number.textContent = sum;
+    numberInput.value = sum;
+};
+
+
+const removeField = (event) => {
+    const field = event.target.dataset.field;
+    const number = document.getElementById(`${field}-number`);
+    const numberInput = document.querySelector(`input[name="${field}"]`)
+    const sub = parseFloat(number.textContent) - 1;
+
+    if (sub < 0) {
+        return;
+    }
+
+    number.textContent = sub;
+    numberInput.value = sub;
+};
 
 
 const renderAmenities = async () => {
@@ -45,13 +126,11 @@ const renderAmenities = async () => {
 
     const amenitiesRadioButtons = Array.from(document.querySelectorAll('input[name="amenitie"]'));
     amenitiesRadioButtons.forEach(button => button.addEventListener('click', (event) => fillNewPostRadioButton(event)));
+};
 
-}
 
 const fillNewPostRadioButton = (event) => {
     const button = event.target.parentNode
-    console.log("Color: ", button.style.color);
-    console.log(button)
 
     if (button.style.color !== 'black') {
         button.style.color = 'black';
@@ -59,6 +138,8 @@ const fillNewPostRadioButton = (event) => {
         button.style.border = '2px solid black';
     } else {
         button.style.color = '#666666'
+        button.style.border = '';
+        button.style.backgroundColor = '#ffffff';
         button.style.border = '';
     };
 };
@@ -181,39 +262,13 @@ const submitNewPostForm = async (event) => {
         body: new FormData(newPostForm)
     });
 
-    
     if (response.status !== 204) {
         loadMessage(`<b>Error Uploading</b> There's been an error uploading your post`, 'danger');
         return;
-    }
-
-    newPostFormTitle.value = '';
-    newPostFormDescription.value = '';
-    newPostFormPrice.value = '';
-    imageInput.value = '';
-    /*firstFieldInput.value = '';
-    firstValueInput.value = '';
-
-    const fileInputs = Array.from(document.querySelectorAll('input[name="image"]'));
-    const fieldInputs = Array.from(document.querySelectorAll('input[name="field"]'));
-    const valueInputs = Array.from(document.querySelectorAll('input[name="value"]'));
-
-
-    for (let i = 1; i < fileInputs.length; i++) {
-        fileInputs[i].remove();
     };
-
-    for (let i = 1; i < fieldInputs.length; i++) {
-        fieldInputs[i].parentNode.remove();
-        fieldInputs[i].remove();
-    };
-
-    for (let i = 1; i < valueInputs.length; i++) {
-        valueInputs[i].parentNode.remove();
-        valueInputs[i].remove();
-    };*/
-
     loadMessage('Post succesfully uploaded', 'success');
+
+    newPostForm.clear();
 
     newPostDialog.close();
 };
@@ -251,9 +306,12 @@ const loadMessage = (msg, type) => {
 };
 
 
-newPostBtn.addEventListener("click", showNewPostDialog);
-closeNewPostDialog.addEventListener("click", () => newPostDialog.close());
-imageInput.addEventListener('change', addFileInput);
+addFieldButtons.forEach(button => button.addEventListener('click', (event) => addField(event)));
+removeFieldButtons.forEach(button => button.addEventListener('click', (event) => removeField(event)));
+newPostBtn.addEventListener('click', showNewPostDialog);
+closeNewPostDialog.addEventListener('click', () => newPostDialog.close());
+imageInputs.forEach(input => input.addEventListener('change', (event) => uploadListingImage(event)));
+// imageInput.addEventListener('change', addFileInput);
 newPostForm.addEventListener('submit', (event) => submitNewPostForm(event));
 // firstFieldInput.addEventListener('keyup', (event) => addTableRow(event));
 //firstValueInput.addEventListener('keyup', (event) => addTableRow(event));

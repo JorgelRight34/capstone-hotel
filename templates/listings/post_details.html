@@ -184,7 +184,7 @@
                 <div class="mb-3">
                     <hr>
                     <h3 class="mb-3 mx-3">Amenities</h3>
-                    <div class="d-flex">
+                    <div class="d-flex" style="overflow: auto">
                         {% for amenitie in post.amenities.all %}
                             <div class="container border rounded shadow-sm p-3 mx-3 amenitie">
                                 <i class="{{ amenitie.icon }} mx-3"></i> {{ amenitie }}
@@ -357,7 +357,7 @@
         </div>
         <div class="p-3" id="comments-container">
             {% for comment in comments %}
-                {% include 'comment.html' %}
+                {% include 'listings/comment.html' %}
             {% endfor %}
         </div>
     </div>

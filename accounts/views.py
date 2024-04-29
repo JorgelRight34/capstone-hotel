@@ -29,7 +29,7 @@ def edit_profile(request):
 
         return HttpResponseRedirect(reverse('profile', args=[request.user.username]))
 
-    return render(request, 'edit_profile.html')
+    return render(request, 'accounts/edit_profile.html')
 
 
 def login_view(request):
@@ -45,9 +45,9 @@ def login_view(request):
             login(request, user)
             return HttpResponseRedirect(reverse("index"))
      
-        return render(request, "login.html")
+        return render(request, "accounts/login.html")
     else:
-        return render(request, "login.html")
+        return render(request, "accounts/login.html")
 
 
 def logout_view(request):
@@ -68,7 +68,7 @@ def register_view(request):
         password = request.POST["password"]
         confirmation = request.POST["confirmation"]
         if password != confirmation:
-            return render(request, "network/register.html", {
+            return render(request, "accounts/register.html", {
                 "message": "Passwords must match."
             })
 
@@ -81,12 +81,12 @@ def register_view(request):
                 user.wallpaper = wallpaper
             user.save()
         except IntegrityError:
-            return render(request, "register.html")
+            return render(request, "accounts/register.html")
         
         login(request, user)
         return HttpResponseRedirect(reverse("index"))
     else:
-        return render(request, "register.html")
+        return render(request, "accounts/register.html")
     
 
 def profile(request, username):
@@ -116,7 +116,7 @@ def profile(request, username):
     for post in posts:
         post.is_in_wishlist = request.user.wishlist.is_in_wishlist(post)
 
-    return render(request, "profile.html", {
+    return render(request, "accounts/profile.html", {
         "profile_user": user,
         "posts": posts,
         "comments": comments

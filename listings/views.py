@@ -92,7 +92,7 @@ def wishlist(request):
     wishlist = [listing.listing for listing in request.user.wishlist.listings.all()]
     for listing in wishlist:
         listing.is_in_wishlist = request.user.wishlist.is_in_wishlist(listing)
-    return render(request, 'cart.html', {'cart': wishlist})
+    return render(request, 'listings/cart.html', {'cart': wishlist})
 
 
 def categories(request):
@@ -151,20 +151,22 @@ def new_post(request):
         try:
             author, title, location = request.user, request.POST['title'], request.POST['location']
             description, price, category = request.POST['description'], request.POST['price'], request.POST['category']
+            guests, bedrooms, beds, bathrooms = request.POST['guests'], request.POST['bedrooms'], request.POST['beds'], request.POST['bathrooms']
         except:
             return redirect('/#new_post')
         
         post = Listing()    
         category = get_object_or_404(Category, pk=category)
         post.author, post.title, post.description, post.price, post.category = author, title, description, price, category
+        post.location, post.guests, post.bedrooms, post.beds, post.bathrooms = location, guests, bedrooms, beds, bathrooms
 
         # Get amenities
+        amenities_list = []
         if amenities := request.POST.getlist('amenitie'):
-            amenities = []
             for amenitie in amenities:
                 amenitie = Amenitie.objects.get(pk=amenitie)
                 amenitie.listing = post
-                amenities.append(str(amenitie))
+                amenities_list.append(str(amenitie))
     
         # Register item in stripe
         stripe.api_key = settings.SECRET_STRIPE_TEST_KEY
@@ -174,7 +176,7 @@ def new_post(request):
             name=post.title,
             description=post.description,
             type='good',
-            metadata=amenities
+            metadata=amenities_list
         )
 
         # Create price representing current product's price
@@ -202,7 +204,6 @@ def new_post(request):
 
 def post_details(request, post):
     post = get_object_or_404(Listing, pk=post)
-    attributes = post.attributes if post.attributes else {}
 
     comments = Paginator(post.comments.all().order_by('-date'), ITEMS_PER_PAGE)
     page = request.GET.get('page')
@@ -224,13 +225,12 @@ def post_details(request, post):
         has_reserved = False
 
 
-    return render(request, 'post_details.html', {
+    return render(request, 'listings/post_details.html', {
         'post': post,
-        'attributes': attributes,
         'comments': comments,
         'stripe_key': settings.STRIPE_TEST_PUBLISHABLE_KEY,
         'has_reserved': has_reserved,
-        'last_check_out': post.last_stay.check_out.strftime('%Y-%m-%d') or datetime.now().strftime('%Y-%m-%d')
+        'last_check_out': post.last_stay.check_out.strftime('%Y-%m-%d') if post.last_stay else datetime.now().strftime('%Y-%m-%d')
     })
 
 

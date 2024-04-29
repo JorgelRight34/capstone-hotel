@@ -85,7 +85,6 @@ const showGuestsDropdownForm = () => {
 }
 
 const validateReserveForm = async (event) => {
-
     if (!reserveForm.checkValidity()) {
         reserveForm.reportValidity();
         return;
@@ -103,7 +102,7 @@ const validateReserveForm = async (event) => {
 
     // Avoid checking in or checking out before today
     if (checkIn <= currentDate || checkOut <= currentDate) {
-        loadMessage("<b>Invalid stay</b> check in can't be in the past nor check out.", 'danger')
+        loadMessage("<b>Invalid stay</b> check in can't be in the past nor the present neither check out.", 'danger')
         return false;
     }
 

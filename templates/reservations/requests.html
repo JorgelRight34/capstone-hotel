@@ -37,7 +37,7 @@
             <div id="pending">
                 {% for request_to_book in pending_requests %}
                 <div class="mb-3" id="request-{{ request_to_book.id }}">
-                    {% include 'request_details.html' %}
+                    {% include 'reservations/request_details.html' %}
                 </div>
                 {% empty %}
                 <h1>No requests</h1>
@@ -46,7 +46,7 @@
             <div id="accepted" class="d-none">
                 {% for request_to_book in accepted_requests %}
                 <div class="mb-3" id="request-{{ request_to_book.id }}">
-                    {% include 'request_details.html' %}
+                    {% include 'reservations/request_details.html' %}
                 </div>
                 {% empty %}
                 <h1>No requests</h1>
@@ -55,7 +55,7 @@
             <div id="declined" class="d-none">
                 {% for request_to_book in declined_requests %}
                 <div class="mb-3" id="request-{{ request_to_book.id }}">
-                    {% include 'request_details.html' %}
+                    {% include 'reservations/request_details.html' %}
                 </div>
                 {% empty %}
                 <h1>No requests</h1>

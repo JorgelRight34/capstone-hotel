@@ -73,8 +73,9 @@ def reserve(request, listing):
     check_out = datetime.strptime(request.GET.get('check-out') or request.POST['check-out'], '%Y-%m-%d').date()
 
     # Avoid having a stay at the same time of an accepted stay request
-    if listing.last_stay.check_out <= check_out and listing.last_stay.check_in >= check_in:
-        return HttpResponse(status=405)
+    if (listing.last_stay):
+        if listing.last_stay.check_out <= check_out and listing.last_stay.check_in >= check_in:
+            return HttpResponse(status=405)
 
     # Get guests
     adults = request.GET.get('adults') or 1
@@ -126,10 +127,10 @@ def reserve(request, listing):
                'total': listing.price * nights,
                'check_in': request.GET['check-in'],
                'check_out': request.GET['check-out'],
-               'last_check_out': listing.last_stay.check_out.strftime('%Y-%m-%d') or datetime.now().strftime('%Y-%m-%d')
+               'last_check_out': listing.last_stay.check_out.strftime('%Y-%m-%d') if listing.last_stay else datetime.now().strftime('%Y-%m-%d')
     }
 
-    return render(request, 'reserve.html', {
+    return render(request, 'reservations/reserve.html', {
         'listing': listing,
         'stripe_key': settings.STRIPE_TEST_PUBLISHABLE_KEY,
         'details': details,
@@ -162,7 +163,7 @@ def requests_to_book(request):
     declined_requests = paginate(declined_requests, declined_page)
 
 
-    return render(request, 'requests.html', {
+    return render(request, 'reservations/requests.html', {
         'pending_requests': pending_requests,
         'accepted_requests': accepted_requests,
         'declined_requests': declined_requests

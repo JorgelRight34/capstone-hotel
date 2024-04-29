@@ -63,7 +63,7 @@
                 <hr>
                 <div class="posts-container">
                     {% for post in posts %}
-                        {% include 'post.html' %}
+                        {% include 'listings/post.html' %}
                     {% empty %}
                         Posts
                     {% endfor %}
@@ -71,7 +71,7 @@
             </div>
             <div id="comments" class="p-3 d-none">
                 {% for comment in comments %}
-                    {% include 'comment.html' %}
+                    {% include 'listings/comment.html' %}
                 {% endfor %}
             </div>
         </div>

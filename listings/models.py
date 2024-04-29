@@ -14,12 +14,13 @@ class Amenitie(models.Model):
         return self.amenitie
     
     
+    def serialize(self):
+        return  {'id': self.id, 'amenitie': self.amenitie, 'icon': self.icon} 
+    
+
     @staticmethod
     def serialize_ammenities():
-        return [
-            {'id': amenitie.id, 'amenitie': amenitie.amenitie, 'icon': amenitie.icon} 
-            for amenitie in Amenitie.objects.all()
-        ]
+        return [amenitie.serialize() for amenitie in Amenitie.objects.all()]
 
 
 class Category(models.Model):
@@ -85,7 +86,10 @@ class Listing(models.Model):
     location = models.CharField(max_length=255)
     price = models.FloatField()
     rating = models.FloatField(default=0)
-    attributes = models.JSONField(blank=True, null=True)
+    guests = models.IntegerField(default=1)
+    bedrooms = models.IntegerField(default=1)
+    beds = models.IntegerField(default=1)
+    bathrooms = models.IntegerField(default=1)
     category = models.ForeignKey(Category, related_name='listings', on_delete=models.CASCADE, blank=True, null=True)
     quantity = models.IntegerField(default=1)
     stripe_id = models.TextField()
@@ -108,14 +112,13 @@ class Listing(models.Model):
             "title": self.title,
             "description": self.description,
             "price": self.price,
-            "attributes": self.attributes,
+            "amenities": [amenitie.serialize() for amenitie in self.amenities.all()],
             "images": [image.image.url for image in self.images.all()],
             "date": {
                 "day": self.date.day,
                 "month": self.date.month,
                 "year": self.date.year
             },
-            "attributes": self.attributes
         }
     
 
@@ -142,7 +145,7 @@ class Listing(models.Model):
         for post in posts:
             if user.wishlist.is_in_wishlist(post):
                 post.is_in_wishlist = True
-            posts_json.append(render_to_string('post.html', {'post': post}))
+            posts_json.append(render_to_string('listings/post.html', {'post': post}))
 
         return posts_json     
 
