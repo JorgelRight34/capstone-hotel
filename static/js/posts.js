@@ -57,6 +57,7 @@ const uploadListingImage = (event) => {
     };
 };
 
+
 const loadAnotherImageInput = () => {
     const imageInputs = Array.from(imageInputsCarousel.querySelectorAll('input[name="image"]'));
     const lastImageInput = imageInputs[imageInputs.length - 1];
@@ -117,20 +118,20 @@ const renderAmenities = async () => {
     for (const amenitie of amenities) {
         const html = `
             <label class="container border rounded shadow-sm p-3 mx-3 amenitie">
-                <input type="radio" id="${amenitie.id}" name="amenitie" class="d-none" value="${amenitie.amenitie}">
+                <input id="${amenitie.id}" name="amenitie" class="d-none" value="${amenitie.id}">
                 <i class="${amenitie.icon} mx-3"></i> ${amenitie.amenitie}
             </label>
         `;
         amenitiesContainer.insertAdjacentHTML('beforeend', html);
     };
 
-    const amenitiesRadioButtons = Array.from(document.querySelectorAll('input[name="amenitie"]'));
-    amenitiesRadioButtons.forEach(button => button.addEventListener('click', (event) => fillNewPostRadioButton(event)));
+    const amenitiesInputs = Array.from(document.querySelectorAll('input[name="amenitie"]'));
+    amenitiesInputs.forEach(button => button.addEventListener('change', (event) => fillNewPostRadioButton(event)));
 };
 
 
 const fillNewPostRadioButton = (event) => {
-    const button = event.target.parentNode
+    const button = event.target.parentNode;
 
     if (button.style.color !== 'black') {
         button.style.color = 'black';
@@ -268,7 +269,7 @@ const submitNewPostForm = async (event) => {
     };
     loadMessage('Post succesfully uploaded', 'success');
 
-    newPostForm.clear();
+    newPostForm.reset();
 
     newPostDialog.close();
 };

@@ -45,6 +45,7 @@
                     <img src="{{ post.images.all.0.image.url }}" class="d-block w-100" alt="{{ post.title }}" style="height: 500px; object-fit: cover;">
                 </div> 
             {% endif %}
+            <!-- Rating -->
             <div class="p-3">
                 <div class="p-3 container border rounded">
                     <div class="mb-3 d-flex justify-content-center align-items-center">
@@ -61,7 +62,30 @@
                         <span class="text-muted">({{ post.ratings.all|length }} reviews)</span>
                     </div>
                 </div>
-            </div>    
+            </div>   
+            <!-- Amenities -->
+            <div class="mb-3">
+                <hr>
+                <h3 class="mb-3 mx-3">Amenities</h3>
+                <div class="p-3">
+                    {% for amenities_list in amenities %}
+                    <div class="row mb-3">
+                        {% for amenitie in amenities_list %}
+                        <div class="col-4 d-flex align-items-center justify-content-center">
+                            <div class="container border rounded shadow-sm p-3 mx-3 amenitie">
+                                <div class="row mb-1">
+                                    <i class="{{ amenitie.icon }} mx-auto"></i>
+                                </div>
+                                <div class="d-flex justify-content-center">
+                                    {{ amenitie }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div> 
         </div>
 
         <!-- Second Container -->
@@ -106,6 +130,7 @@
             <!-- Info -->
             <div id="info">
                 <div class="row mb-3" id="post-details-header">
+                    <!-- Title -->
                     <div class="col-9">
                         <h4 class="post-details-title" id="post-title">{{ post.title }}</h4> 
                     </div>
@@ -165,6 +190,7 @@
                     </div>
         
                 </div>
+                <!-- Author Info -->
                 <div class="mb-3">
                     <div class="wallpaper p-3 d-flex align-items-center">
                         <input type="hidden" value="{{ post.author.wallpaper.url }}" name="wallpaper">
@@ -178,18 +204,27 @@
                         </div>
                     </div>
                 </div>
+                <!-- Description -->
                 <div class="mb-3">
                     <span id="post-description">{{ post.description }}</span>
                 </div>
-                <div class="mb-3">
-                    <hr>
-                    <h3 class="mb-3 mx-3">Amenities</h3>
-                    <div class="d-flex" style="overflow: auto">
-                        {% for amenitie in post.amenities.all %}
-                            <div class="container border rounded shadow-sm p-3 mx-3 amenitie">
-                                <i class="{{ amenitie.icon }} mx-3"></i> {{ amenitie }}
-                            </div>
-                        {% endfor %}
+                <!-- Guests, Bedrooms, Beds & Bathrooms -->
+                <div class="mb-3 p-3">
+                    <div class="d-flex">
+                        <div class="container border rounded shadow-sm d-flex align-items-center mb-3 mx-3 p-3">
+                            <i class="fa-solid fa-users"></i><span class="mx-3">Guests</span><b>{{ post.guests }}</b>
+                        </div>
+                        <div class="container border rounded  shadow-sm align-items-center mb-3 mx-3 p-3">
+                            <i class="fa-solid fa-door-closed"></i><span class="mx-3">Bedrooms</span><b>{{ post.bedrooms }}</b>
+                        </div>
+                    </div>
+                    <div class="d-flex">
+                        <div class="container border rounded d-flex shadow-sm align-items-center mb-3 mx-3 p-3">
+                            <i class="fa-solid fa-bed mx-1"></i><span class="mx-3">Beds</span><b>{{ post.beds }}</b>
+                        </div>
+                        <div class="container border rounded d-flex shadow-sm align-items-center mb-3 mx-3 p-3">
+                            <i class="fa-solid fa-toilet mx-1"></i><span class="mx-3">Bathrooms</span><b>{{ post.bathrooms }}</b>
+                        </div>
                     </div>
                 </div>
                 <div id="post-options">
@@ -200,7 +235,7 @@
                         <div class="container bg-white rounded border">
                             <!-- Price -->
                             <div class="mb-3 d-flex align-items-center p-1">
-                                <h3 id="post-price">${{ post.price }}</h3> <span class="text-muted mx-3">night</span>
+                                <h3 id="post-price">${{ post.price }} USD</h3> <span class="text-muted mx-3">night</span>
                             </div>
                             <!-- Check In & Check Out -->
                             <div class="mb-3 d-flex">
@@ -219,6 +254,7 @@
                             </div>
                             <!-- Guests -->
                             <div class="mb-3 p-1">
+                                <input type="hidden" name="max-guests" value="{{ post.guests }}">
                                 <div class="dropdown">
                                     <!-- Trigger -->   
                                     <div class="form-floating" type="button" id="guests" aria-expanded="false">

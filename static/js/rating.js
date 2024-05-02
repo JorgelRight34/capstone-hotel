@@ -1,5 +1,5 @@
 const ratingStarsContainer = document.getElementById('rating-stars');
-const stars = Array.from(document.querySelectorAll('.fa-regular.fa-star'));
+const stars = Array.from(ratingStarsContainer.querySelectorAll('.fa-regular.fa-star'));
 const ratingForm = document.getElementById('rating-form');
 let rating = 0;
 
@@ -21,9 +21,8 @@ const showCurrentRating = () => {
         };
         sub -= 1;
     };
-}
+};
 
-showCurrentRating();
 
 const fillStar = (event) => {
     const star = event.target;
@@ -83,4 +82,7 @@ if (ratingStarsContainer) {
     ratingStarsContainer.addEventListener('mousemove', (event) => unfillStars(event));
     stars.forEach(star => star.addEventListener('mousemove', (event) => fillStar(event)));
     stars.forEach(star => star.addEventListener('click', rate))
-}
+};
+
+
+showCurrentRating();

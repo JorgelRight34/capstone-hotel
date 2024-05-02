@@ -92,6 +92,7 @@ class Listing(models.Model):
     bathrooms = models.IntegerField(default=1)
     category = models.ForeignKey(Category, related_name='listings', on_delete=models.CASCADE, blank=True, null=True)
     quantity = models.IntegerField(default=1)
+    type = models.CharField(max_length=5)
     stripe_id = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
 
@@ -162,10 +163,10 @@ class Rating(models.Model):
 
 
 class ListingImage(models.Model):
-    listing = models.ForeignKey(Listing, related_name="images", blank=False, null=False, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="posts/")
+    listing = models.ForeignKey(Listing, related_name='images', blank=False, null=False, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='posts/')
 
 
     def __str__(self):
-        return f"{self.post} image"
+        return f'{self.listing} image'
     

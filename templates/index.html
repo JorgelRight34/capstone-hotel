@@ -5,7 +5,7 @@
 {% block extended_navbar %}
 <div class="bg-white rounded p-3 mb-3 m-0 w-100 row">
     <!-- Categories -->
-    <div class="col-md-9">
+    <div class="col-md-8">
         <div class="categories-m">
             <!-- Categories carousel for medium and large devices -->
             <div id="categoriesCarousel" class="carousel carousel-dark slide row categories-m" data-bs-ride="carousel" data-bs-interval="false">
@@ -76,9 +76,16 @@
             <input type="hidden" name="current-category" id="current-category">
         </div>
     </div>
+    
+    <!-- Advanced Search -->
+    <div class="col-md-2">
+        <button class="container border rounded shadow-sm w-50 p-1 bg-white" id="advanced-search-button">
+            <i class="fa-solid fa-filter text-center mx-1"></i>Filters
+        </button>
+    </div>
         
     <!-- Filters -->
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div class="select-posts-order-container">
             <select class="form-select" name="select-order">
                 <option>Order by</option>
@@ -93,7 +100,7 @@
 
 {% block body %}
 <div class="p-3">
-    <div class="container bg-white p-3 rounded">
+    <div class="container p-3 rounded">
         <div class="posts-container">
             {% for post in posts %}
                 {% include 'listings/post.html' %}
@@ -102,8 +109,279 @@
             {% endfor %}
         </div>
     </div>
+
+    <!-- Advanced Search Dialog -->
+    <dialog id="advanced-search-dialog" class="container border rounded bg-white w-75">
+        <div class="d-flex mb-3">
+            <button type="button" class="btn-close sticky-top" data-bs-dismiss="alert" aria-label="Close" id="close-advanced-search-dialog"></button>
+            <h3 class="mx-auto">Filters</h3>
+        </div>
+        <hr>
+        <div>
+            <!-- Advanced Search Form -->
+            <form id="advanced-search-form">
+                <!-- Type Of Place-->
+                <div class="mb-3">
+                    <h4>Type of place</h4>
+                    <span class="form-text mb-3" id="place-type-text">
+                        Search rooms, entire homes, or any type of place
+                    </span>
+                    <div class="d-flex justify-content-center align-items-center">
+                        <label class="container border rounded p-3 d-flex justify-content-center place-type bg-dark text-light">
+                            <input type="radio" value="" name="place-type" class="d-none place-type-input" checked>
+                            Any
+                        </label>
+                        <label class="container border rounded p-3 d-flex justify-content-center place-type bg-light">
+                            <input type="radio" value="room" name="place-type" class="d-none place-type-input">
+                            Rooms
+                        </label>
+                        <label class="container border rounded p-3 d-flex justify-content-center place-type bg-light">
+                            <input type="radio" value="house" name="place-type" class="d-none place-type-input">
+                            Houses
+                        </label>
+                    </div>
+                </div>
+                <hr>
+
+                <!-- Price Range -->
+                <div class="mb-3">
+                    <h4>Price range</h4>
+                    <div class="form-text">
+                        
+                    </div>
+                    <span class="form-text mb-3">
+                        Nightly prices before fees and taxes
+                    </span>
+                    <Div class="row">
+                        <!-- Minimum Price -->
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input type="number" name="min-price" class="form-control" id="min-price" value="0">
+                                <label for="min-price">Minimum</label>
+                            </div>
+                        </div>
+                        <!-- Maximum Price -->
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input type="number" name="max-price" class="form-control" id="max-price" value="2000">
+                                <label for="max-price">Maximum</label>
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+                <hr>
+                <!-- Rooms & Beds -->
+                <div class="form-group mb-3" id="rooms-and-beds">
+                    <h4>Rooms and beds</h4>
+                    <!-- Bedrooms -->
+                    <div class="mb-3">
+                        <span class="text-muted mb-3">Bedrooms</span>
+                        <div class="d-flex justify-content-center p-3">
+                            <input type="hidden" name="bedrooms" value="1">
+                            <button type="button" class="btn btn-dark mx-2">Any</button>
+                            <button type="button" class="btn btn-light mx-2">1</button>
+                            <button type="button" class="btn btn-light mx-2">2</button>
+                            <button type="button" class="btn btn-light mx-2">3</button>
+                            <button type="button" class="btn btn-light mx-2">4</button>
+                            <button type="button" class="btn btn-light mx-2">5</button>
+                            <button type="button" class="btn btn-light mx-2">6</button>
+                            <button type="button" class="btn btn-light mx-2">7</button>
+                            <button type="button" class="btn btn-light mx-2">8+</button>
+                        </div>
+                    </div>
+                    <hr>
+                    <!-- Beds -->
+                    <div class="mb-3">
+                        <span class="text-muted">Beds</span>
+                        <div class="d-flex justify-content-center p-3">
+                            <input type="hidden" name="beds" value="1">
+                            <button type="button" class="btn btn-dark mx-2">Any</button>
+                            <button type="button" class="btn btn-light mx-2">1</button>
+                            <button type="button" class="btn btn-light mx-2">2</button>
+                            <button type="button" class="btn btn-light mx-2">3</button>
+                            <button type="button" class="btn btn-light mx-2">4</button>
+                            <button type="button" class="btn btn-light mx-2">5</button>
+                            <button type="button" class="btn btn-light mx-2">6</button>
+                            <button type="button" class="btn btn-light mx-2">7</button>
+                            <button type="button" class="btn btn-light mx-2">8+</button>
+                        </div>
+                    </div>
+                    <hr>
+                    <!-- Baths -->
+                    <div class="mb-3">
+                        <span class="text-muted">Bathrooms</span>
+                        <div class="d-flex justify-content-center p-3">
+                            <input type="hidden" name="bathrooms" value="1">
+                            <button type="button" class="btn btn-dark mx-2">Any</button>
+                            <button type="button" class="btn btn-light mx-2">1</button>
+                            <button type="button" class="btn btn-light mx-2">2</button>
+                            <button type="button" class="btn btn-light mx-2">3</button>
+                            <button type="button" class="btn btn-light mx-2">4</button>
+                            <button type="button" class="btn btn-light mx-2">5</button>
+                            <button type="button" class="btn btn-light mx-2">6</button>
+                            <button type="button" class="btn btn-light mx-2">7</button>
+                            <button type="button" class="btn btn-light mx-2">8+</button>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <!-- Guests -->
+                <div class="form-group mb-3">
+                    <input type="hidden" name="max-guests" value="{{ post.guests }}">
+                    <div class="dropdown">
+                        <!-- Trigger -->   
+                        <div class="form-floating" type="button" id="guests" aria-expanded="false">
+                            <span class="form-control dropdown-toggle" id="guests-text">1 Adult</span>
+                            <label for="guests-text">Guests</label>
+                        </div>               
+                        <!-- Dropdown -->
+                        <ul class="dropdown-menu w-100" aria-labelledby="guests" id="guests-dropdown-form" style="display: none;">
+                            <!-- Adults -->
+                            <li>
+                                <div class="dropdown-item">
+                                    <div class="row">
+                                        <input type="hidden" name="adults" required>
+                                        <!-- Label -->
+                                        <div class="col-9">
+                                            <h6>Adults</h6>
+                                            <span class="text-muted">Age 13+</span>
+                                        </div>
+                                        <!-- Input Number -->
+                                        <div class="col-3 d-flex align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <div class="white-circle border shadow-sm remove-guests" data-guests-type="adults">
+                                                    <i class="fa-solid fa-minus" data-guests-type="adults"></i>
+                                                </div>
+                                                <span class="mx-3" id="adults-number">
+                                                    1
+                                                </span>
+                                                <div class="white-circle border shadow-sm add-guests" data-guests-type="adults">
+                                                    <i class="fa-solid fa-plus" data-guests-type="adults"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <!-- Children -->
+                            <li>
+                                <div class="dropdown-item">
+                                    <div class="row">
+                                        <input type="hidden" name="children">
+                                        <!-- Label -->
+                                        <div class="col-9">
+                                            <h6>Children</h6>
+                                            <span class="text-muted">Ages 2-12</span>
+                                        </div>
+                                        <!-- Input Number -->
+                                        <div class="col-3 d-flex align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <div class="white-circle border shadow-sm remove-guests" data-guests-type="children">
+                                                    <i class="fa-solid fa-minus" data-guests-type="children"></i>
+                                                </div>
+                                                <span class="mx-3" id="children-number">
+                                                    0
+                                                </span>
+                                                <div class="white-circle border shadow-sm add-guests" data-guests-type="children">
+                                                    <i class="fa-solid fa-plus" data-guests-type="children"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <!-- Infants -->
+                            <li>
+                                <div class="dropdown-item">
+                                    <div class="row">
+                                        <input type="hidden" name="infants">
+                                        <!-- Label -->
+                                        <div class="col-9">
+                                            <h6>Infants</h6>
+                                            <span class="text-muted">Under 2</span>
+                                        </div>
+                                        <!-- Input Number -->
+                                        <div class="col-3 d-flex align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <div class="white-circle border shadow-sm remove-guests" data-guests-type="infants">
+                                                    <i class="fa-solid fa-minus" data-guests-type="infants"></i>
+                                                </div>
+                                                <span class="mx-3" id="infants-number">
+                                                    0
+                                                </span>
+                                                <div class="white-circle border shadow-sm add-guests" data-guests-type="infants">
+                                                    <i class="fa-solid fa-plus" data-guests-type="infants"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <hr>
+                <!-- Check In & Check Out -->
+                <div class="form-group mb-3">
+                    <div class="mb-3 d-flex">
+                        <div class="p-1 w-50">
+                            <div class="form-floating">
+                                <input type="date" class="form-control" id="check-in" name="check-in" min="{{ last_check_out }}" value="{{ last_check_out }}" required>
+                                <label for="check-in">Check In</label>
+                            </div>
+                        </div>
+                        <div class="p-1 w-50">
+                            <div class="form-floating">
+                                <input type="date" class="form-control" id="check-out" name="check-out" min="{{ last_check_out }}" value="{{ last_check_out }}" required>
+                                <label for="check-out">Check Out</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <!-- Amenities -->
+                <div class="form-group mb-3">
+                    <h4 class="mb-3">Amenities</h4>
+                    <input type="hidden" name="amenities">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="wifi" id="wifi">
+                        <label class="form-check-label" for="wifi">
+                          WiFi
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="washer" id="washer">
+                        <label class="form-check-label" for="washer">
+                          Washer
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="air conditioning" id="air-conditioning">
+                        <label class="form-check-label" for="air-conditioning">
+                         Air Conditioning
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="kitchen" id="kitchen">
+                        <label class="form-check-label" for="kitchen">
+                          Kitchen
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="dryer" id="dryer">
+                        <label class="form-check-label" for="dryer">
+                          Dryer
+                        </label>
+                    </div>
+                </div>
+                <input class="btn btn-outline-success" type="submit">
+                <button class="btn btn-outline-danger" type="button" id="clear-advanced-search-form">Clear</button>
+            </form>
+        </div>
+    </dialog>
 </div>
 <script src="{% static 'js/profile.js' %}"></script>
 <script src="{% static 'js/categories.js' %}"></script>
 <script src="{% static 'js/search_posts.js' %}"></script>
+<script src="{% static 'js/reserve.js' %}"></script>
 {% endblock %}

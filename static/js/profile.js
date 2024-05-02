@@ -1,7 +1,7 @@
 const sections = {
-    "#about": document.getElementById('about'),
-    "#posts" : document.getElementById('posts'),
-    "#comments" : document.getElementById('comments')
+    '#about': document.getElementById('about'),
+    '#posts' : document.getElementById('posts'),
+    '#comments' : document.getElementById('comments')
 };
 
 const aboutLink = document.getElementById('about-link');
@@ -100,10 +100,9 @@ const reloadPosts = (posts) => {
 const resetLinks = () => {
     links.forEach(link => {
         link.classList.remove('active');
-        const section = link.id.replace(/-link/, "");
+        const section = link.id.replace(/-link/, '');
         sections[`#${section}`].classList.add('d-none');
-    })
-
+    });
 };
 
 
@@ -170,7 +169,6 @@ if (searchUserPostsInput) {
 if (searchWishlistListingsInput) {
     searchWishlistListingsInput.addEventListener('keyup', searchWishlistListings);
 };
-
 links.forEach(link => {
     if (link) {
         link.addEventListener('click', () => {

@@ -149,7 +149,7 @@ def delete_comment(request, comment):
 def new_post(request):
     if request.method == "POST":
         try:
-            author, title, location = request.user, request.POST['title'], request.POST['location']
+            author, title, location, place_type = request.user, request.POST['title'], request.POST['location'], request.POST['place-type']
             description, price, category = request.POST['description'], request.POST['price'], request.POST['category']
             guests, bedrooms, beds, bathrooms = request.POST['guests'], request.POST['bedrooms'], request.POST['beds'], request.POST['bathrooms']
         except:
@@ -158,14 +158,18 @@ def new_post(request):
         post = Listing()    
         category = get_object_or_404(Category, pk=category)
         post.author, post.title, post.description, post.price, post.category = author, title, description, price, category
-        post.location, post.guests, post.bedrooms, post.beds, post.bathrooms = location, guests, bedrooms, beds, bathrooms
+        post.location, post.guests, post.bedrooms, post.beds, post.bathrooms, post.place_type = location, guests, bedrooms, beds, bathrooms, place_type
+        post.save()
 
         # Get amenities
         amenities_list = []
         if amenities := request.POST.getlist('amenitie'):
+            print(amenities)
             for amenitie in amenities:
                 amenitie = Amenitie.objects.get(pk=amenitie)
-                amenitie.listing = post
+                print("amenitie", amenitie )
+                amenitie.listing.set([post])
+                amenitie.save()
                 amenities_list.append(str(amenitie))
     
         # Register item in stripe
@@ -224,13 +228,26 @@ def post_details(request, post):
     else:
         has_reserved = False
 
+    amenities = post.amenities.all()
+    amenities_pages = []
+    AMENITIES_PER_PAGE = 3
+    start_index, end_index = 0, AMENITIES_PER_PAGE
+    amenities_sliced = amenities[start_index:end_index]
+
+    while amenities_sliced:
+        amenities_pages.append(amenities_sliced)
+        start_index, end_index = start_index + AMENITIES_PER_PAGE, end_index + AMENITIES_PER_PAGE
+        amenities_sliced = amenities[start_index:end_index]
+
+    print(amenities_pages)
 
     return render(request, 'listings/post_details.html', {
         'post': post,
         'comments': comments,
         'stripe_key': settings.STRIPE_TEST_PUBLISHABLE_KEY,
         'has_reserved': has_reserved,
-        'last_check_out': post.last_stay.check_out.strftime('%Y-%m-%d') if post.last_stay else datetime.now().strftime('%Y-%m-%d')
+        'last_check_out': post.last_stay.check_out.strftime('%Y-%m-%d') if post.last_stay else datetime.now().strftime('%Y-%m-%d'),
+        'amenities': amenities_pages
     })
 
 
@@ -258,6 +275,109 @@ def rate(request, listing):
         listing.set_rating(float(rating.rating))
 
         return HttpResponse(status=204)
+
+
+def search_posts(request):
+    # Get all GET parameters
+    q = request.GET.get('q')
+    order = request.GET.get('order_by', 'date')
+    wishlist = request.GET.get('wishlist')    # Contains username of wishlist's user
+    min_price = request.GET.get('min_price') or 0
+    max_price = request.GET.get('max_price') or 10000
+
+    beds = request.GET.get('beds') or 1
+    bedrooms = request.GET.get('bedrooms') or 1
+    bathrooms = request.GET.get('bathrooms') or 1
+
+    amenities = {
+        'Wifi': request.GET.get('wifi') or False,
+        'Washer': request.GET.get('washer') or False,
+        'Air Conditioning': request.GET.get('air_conditioning') or False, 
+        'Kitchen': request.GET.get('kitchen') or False,
+        'Dryer': request.GET.get('dryer') or False
+    }
+
+    parameters = {
+        'category': request.GET.get('category'),
+        'author': request.GET.get('author'),
+        'type': request.GET.get('place-type'),
+    }
+
+    # Populate paginator parameters only the non null ones
+    paginator_parameters = {}
+    for parameter in parameters.keys():
+        if parameters[parameter]:
+            paginator_parameters[parameter] = parameters[parameter]
+
+    # Get category if there's been a category
+    if parameters['category']:
+        paginator_parameters['category'] = Category.objects.get(category=parameters['category'])
+
+    # Get author if author was defined
+    if parameters['author']:
+        paginator_parameters['author'] = User.objects.get(username=parameters['author'])
+
+    # Get all posts from a query if a query was given
+    if q:
+        posts = Listing.objects.filter(
+            Q(title__icontains=q) | 
+            Q(description__icontains=q) | 
+            Q(category__category__icontains=q), 
+            Q(price__gte=min_price) & Q(price__lte=max_price),
+            Q(beds__gte=beds),
+            Q(bedrooms__gte=bedrooms),
+            Q(bathrooms__gte=bathrooms),
+            **paginator_parameters
+        ).order_by(order)
+    else:
+        # Unpack parameters 
+        posts = Listing.objects.filter(
+            Q(price__gte=min_price) & Q(price__lte=max_price), 
+            Q(beds__gte=beds),
+            Q(bedrooms__gte=bedrooms),
+            Q(bathrooms__gte=bathrooms),
+            **paginator_parameters
+        ).order_by(order)
+
+    # If amenities only get the listings which have the provided amenities
+    filtered_posts = []
+    for post in posts:
+        contains_all = True
+        for amenitie in amenities.keys():
+            if amenities[amenitie]:
+                amenitie = Amenitie.objects.get(amenitie=amenitie)
+                if post.title not in [listing.title for listing in amenitie.listing.all()]:
+                    contains_all = False
+                    break
+        if contains_all:
+            filtered_posts.append(post)
+
+    posts = filtered_posts
+
+    # If wishlist was defined then get all posts from wishlist
+    if wishlist:
+      wishlist = request.user.wishlist.listings.all()
+      for post in posts:
+          # If post not in wishlist then remove it from posts
+          if post.id not in [wishlist_listing.listing.id for wishlist_listing in wishlist]:
+              posts.remove(post)
+
+    # Paginator
+    posts = Paginator(posts, POSTS_PER_PAGE)
+
+    # Get page
+    page = request.GET.get('page') or 1
+
+    try:
+        posts = posts.page(page)
+    except EmptyPage:
+        return HttpResponse(status=404)
+
+    # If first page is empty, it won't throw EmptyPage error then return 404
+    if not posts:
+        return HttpResponse(status=404)
+    
+    return JsonResponse(Listing.render_posts_json(posts, request.user), safe=False)
 
 
 @login_required
@@ -304,65 +424,3 @@ def user_comments(request, username):
 
 
     return JsonResponse(Comment.render_comments_json(comments, request.user))
-
-
-def search_posts(request):
-    # Get all GET parameters
-    q = request.GET.get('q')
-    order = request.GET.get('order_by', 'date')
-    wishlist = request.GET.get('wishlist')    # Contains username of wishlist's user
-
-    parameters = {
-        'category': request.GET.get('category'),
-        'author': request.GET.get('author')
-    }
-
-    # Populate paginator parameters only the non null ones
-    paginator_parameters = {}
-    for parameter in parameters.keys():
-        if parameters[parameter] and parameter != 'order_by' and parameter !='query' and parameter != 'wishlist':
-            paginator_parameters[parameter] = parameters[parameter]
-
-
-    # Get category if there's been a category
-    if parameters['category']:
-        paginator_parameters['category'] = Category.objects.get(category=parameters['category'])
-
-    # Get author if author was defined
-    if parameters['author']:
-        paginator_parameters['author'] = User.objects.get(username=parameters['author'])
-
-    # Get all posts from a query if a query was given
-    if q:
-        posts = Listing.objects.filter(
-            Q(title__icontains=q) | 
-            Q(description__icontains=q) | 
-            Q(category__category__icontains=q), 
-            **paginator_parameters
-        ).order_by(order)
-    else:
-        # Unpack parameters 
-        posts = Listing.objects.filter(**paginator_parameters).order_by(order)
-
-    # If wishlist was defined then get all posts from wishlist
-    if wishlist:
-      posts = [post for post in posts]
-      wishlist = request.user.wishlist.listings.all()
-      for post in posts:
-          # If post not in wishlist then remove it from posts
-          if post.id not in [wishlist_listing.listing.id for wishlist_listing in wishlist]:
-              posts.remove(post)
-
-    # Paginator
-    posts = Paginator(posts, POSTS_PER_PAGE)
-
-    # Get page
-    page = request.GET.get('page') or 1
-
-    try:
-        posts = posts.page(page)
-    except EmptyPage:
-        return HttpResponse(status=404)
-
-
-    return JsonResponse(Listing.render_posts_json(posts, request.user), safe=False)

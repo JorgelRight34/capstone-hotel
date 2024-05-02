@@ -81,7 +81,7 @@
                 <li><hr class="dropdown-divider"></li>
                 <li>
                   <div class="nav-item active">
-                    <a class="dropdown-item" href="#new-post" id="new-post-btn">Post +</a>
+                    <a class="dropdown-item" id="new-post-btn">Post +</a>
                   </div>
                 </li>
                 <li>
@@ -107,11 +107,22 @@
 
         <dialog id="new-post-dialog" class="container border rounded">
             <form action="{% url 'new_post' %}" class="row" method="post" enctype="multipart/form-data" id="new-post-form">
-                <div class="col-md-6">
+                <div class="col-lg-6">
                   {% csrf_token %}
-                  <div class="form-group mb-3">
-                    <label class="form-label" for="title">Title</label>
-                    <input class="form-control" id="new-post-form-title" name="title" required>
+                  <div class="form-group row mb-3">
+                    <!-- Title -->
+                    <div class="col-9">
+                      <label class="form-label" for="title">Title</label>
+                      <input class="form-control" id="new-post-form-title" name="title" required>
+                    </div>
+                    <!-- Place Type -->
+                    <div class="col-3">
+                      <label class="form-label" for="place-type">Place Type</label>
+                      <select class="form-control w-100" id="place-type" name="place-type">
+                        <option value="room">Room</option>
+                        <option value="house">Entire House</option>
+                      </select>
+                    </div>
                   </div>
                   <div class="form-group row mb-3">
                       <div class="col">
@@ -146,13 +157,9 @@
                       <!-- Ammenities -->
                     </div>
                   </div>
-                  <div class="form-group">
-                      <input type="submit" class="btn btn-success">
-                      <input type="button" class="btn btn-outline-success" value="Close" id="close-new-post-dialog">
-                  </div>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-lg-6">
                     <!-- Images -->
                     <div class="mb-3">
                       <div id="image-inputs" class="carousel carousel-dark slide" data-bs-interval="false">
@@ -273,7 +280,10 @@
                             </div>
                         </div>
                     </div>
-
+                </div>
+                <div class="form-group">
+                  <input type="submit" class="btn btn-success">
+                  <input type="button" class="btn btn-outline-success" value="Close" id="close-new-post-dialog">
                 </div>
             </form>
         </dialog>
