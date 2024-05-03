@@ -12,6 +12,9 @@ const categoriesOptions = Array.from(document.querySelectorAll('.category-link')
 const indexPostsContainer = document.querySelector('.posts-container');
 const currentCategory = document.getElementById('current-category');
 
+const appliedFiltersText = document.getElementById('applied-filters');
+let appliedFilters = 0;
+
 let page = 1;
 let place_type = '';
 let min_price = 0
@@ -25,6 +28,8 @@ let washer = '';
 let air_conditioning = '';
 let kitchen = '';
 let dryer = '';
+let check_in = '';
+let check_out = '';
 
 
 const searchPosts = async (event) => {
@@ -33,12 +38,18 @@ const searchPosts = async (event) => {
     const last_category = category;
     category = window.location.hash.replace('#', '');
    
-    if (last_category !== category) {
+    if (last_category !== category && event.target.tagName === 'FORM') {
         page = 0;
     };
 
+    let user = document.getElementById('profile-user') || '';
+    if (user) {
+        user = user.value;
+    };
+
     const response = await fetch(
-        '/search-posts?' +
+        '/search-listings?' +
+        `author=${user}&` +
         `order_by=${order}&` +
         `category=${category}&` +
         `page=${page + 1}&` +
@@ -52,24 +63,57 @@ const searchPosts = async (event) => {
         `washer=${washer}&` +
         `air_conditioning=${air_conditioning}&` +
         `kitchen=${kitchen}&` +
-        `dryer=${dryer}&`
+        `dryer=${dryer}&` +
+        `check_in=${check_in}&` +
+        `check_out=${check_out}`
     );
 
-    postsContainer.innerHTML = '';
-    if (response.status === 404) {
+    if (response.status === 404 && event.target.tagName === 'FORM') {
         loadMessage("<strong>No matches</strong> can't find what you are looking for.", 'danger');
+        postsContainer.innerHTML = '';
         return;
     };
+
+    if (event.target.tagName === 'FORM') {
+        postsContainer.innerHTML = '';
+    }
+
+    if (response.status === 404) {
+        return;
+    }
 
     page++;
     const posts = await response.json();
 
     for (const post in posts) {
-        console.log(post);
         postsContainer.innerHTML += posts[post];
     };
 
     loadPostEventListeners();
+};
+
+
+const updateAppliedFiltersText = () => {
+    appliedFiltersText.textContent = '0';
+    const updateAppliedFilters = () => {
+        appliedFiltersText.textContent = parseInt(appliedFiltersText.textContent) + 1;
+    };
+
+    advancedSearchForm.querySelector('input[name="place-type"]:checked').value !== '' ? updateAppliedFilters() : false;
+    advancedSearchForm.querySelector('#min-price').value !== '0' ? updateAppliedFilters() : false;
+    advancedSearchForm.querySelector('#max-price').value !== '2000' ? updateAppliedFilters() : false;
+    advancedSearchForm.querySelector('input[name="beds"]').value !== '1' ? updateAppliedFilters() : false;
+    advancedSearchForm.querySelector('input[name="bedrooms"]').value !== '1' ? updateAppliedFilters() : false;
+    advancedSearchForm.querySelector('input[name="bathrooms"]').value !== '1' ? updateAppliedFilters() : false;
+    advancedSearchForm.querySelector('#wifi').checked ?  updateAppliedFilters() : false;
+    advancedSearchForm.querySelector('#washer').checked ? updateAppliedFilters(): false;
+    advancedSearchForm.querySelector('#air-conditioning').checked ? updateAppliedFilters() : false;
+    advancedSearchForm.querySelector('#kitchen').checked ? updateAppliedFilters() : false;
+    advancedSearchForm.querySelector('#dryer').checked ? updateAppliedFilters() : false;
+    advancedSearchForm.querySelector('#check-in').value ? updateAppliedFilters() : false;
+    advancedSearchForm.querySelector('#check-out').value ? updateAppliedFilters() : false;
+
+    appliedFiltersText.classList.remove('d-none');
 };
 
 
@@ -109,61 +153,20 @@ const changePlaceTypeInputBackground = (event) => {
 
 const changeRoomsAndBedsInput = (event) => {
     const button = event.target;
-    const siblingButtons = Array.from(button.parentElement.querySelectorAll('button'));
     const input = button.parentElement.querySelector('input');
+    const siblingButtons = Array.from(button.parentElement.querySelectorAll('button'));
 
-    if (parseInt(button.textContent)) {
-        input.value = parseInt(button.textContent);
-    };
+    input.value = parseInt(button.textContent) || 1;
 
-    console.log(input.value);
     siblingButtons.forEach(button => changeToLightBackground(button));
     changeToDarkBackground(button);
 };
 
 
-const loadMorePosts = async () => {
+const loadMorePosts = async (event) => {
     if (Math.round(window.innerHeight + window.scrollY)  >= document.body.offsetHeight) {
         // Load more items when scrolled to the bottom
-        const category = window.location.hash.replace('#', '')
-
-        let user = document.getElementById('profile-user') || '';
-        if (user) {
-            user = user.value;
-        };
-
-        const response = await fetch(
-            '/search-posts?' +
-            `order_by=${order}&` +
-            `&author=${user}&` +
-            `category=${category}&` +
-            `page=${page + 1}&` +
-            `q=${getQuery()}&` +
-            `min_price=${min_price}&` +
-            `max_price=${max_price}&` +
-            `beds=${beds}&` +
-            `bedrooms=${bedrooms}&` +
-            `bathrooms=${bathrooms}&` +
-            `wifi=${wifi}&` +
-            `washer=${washer}&` +
-            `air_conditioning=${air_conditioning}&` +
-            `kitchen=${kitchen}&` +
-            `dryer=${dryer}`
-        );
-
-        if (response.status === 404) {
-            return;
-        };
-
-        page++;
-        
-        const posts = await response.json();
-
-        for (const post in posts) {
-            postsContainer.insertAdjacentHTML('beforeend', posts[post]);
-        };
-
-        loadPostEventListeners();
+        searchPosts(event);
     };
 };
 
@@ -178,14 +181,17 @@ const advancedSearch = (event) => {
     beds = advancedSearchForm.querySelector('input[name="beds"]').value;
     bedrooms = advancedSearchForm.querySelector('input[name="bedrooms"]').value;
     bathrooms = advancedSearchForm.querySelector('input[name="bathrooms"]').value;
-    wifi = advancedSearchForm.querySelector('#wifi').checked? 'true': '';
-    washer = advancedSearchForm.querySelector('#washer').checked? 'true': '';
+    wifi = advancedSearchForm.querySelector('#wifi').checked ? 'true': '';
+    washer = advancedSearchForm.querySelector('#washer').checked ? 'true': '';
     air_conditioning = advancedSearchForm.querySelector('#air-conditioning').checked? 'true' : '';
-    kitchen = advancedSearchForm.querySelector('#kitchen').checked? 'true' : '';
-    dryer = advancedSearchForm.querySelector('#dryer').checked? 'true' : ''
+    kitchen = advancedSearchForm.querySelector('#kitchen').checked ? 'true' : '';
+    dryer = advancedSearchForm.querySelector('#dryer').checked ? 'true' : ''
+    check_in = advancedSearchForm.querySelector('#check-in').value;
+    check_out = advancedSearchForm.querySelector('#check-out').value;
     page = 0;
 
     searchPosts(event);
+    updateAppliedFiltersText();
 };
 
 

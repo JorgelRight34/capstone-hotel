@@ -73,9 +73,8 @@ def reserve(request, listing):
     check_out = datetime.strptime(request.GET.get('check-out') or request.POST['check-out'], '%Y-%m-%d').date()
 
     # Avoid having a stay at the same time of an accepted stay request
-    if (listing.last_stay):
-        if listing.last_stay.check_out <= check_out and listing.last_stay.check_in >= check_in:
-            return HttpResponse(status=405)
+    if (listing.check_conflicts(check_in, check_out)):
+        return HttpResponse(status=405)
 
     # Get guests
     adults = request.GET.get('adults') or 1

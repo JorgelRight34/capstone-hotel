@@ -1,4 +1,4 @@
-const reserveForm = document.getElementById('reserve-form');
+let reserveForm = document.getElementById('reserve-form') || document;
 const checkInInput = reserveForm.querySelector('#check-in');
 const checkOutInput = reserveForm.querySelector('#check-out');
 const guestsForm = reserveForm.querySelector('#guests');
@@ -144,7 +144,9 @@ const submitReserveForm = async (event) => {
 
 
 updateGuestText();
-reserveButton.addEventListener('click', (event) => validateReserveForm(event));
+if (reserveButton) {
+    reserveButton.addEventListener('click', (event) => validateReserveForm(event));
+};
 guestsForm.onclick = showGuestsDropdownForm;
 addGuests.forEach(button => button.addEventListener('click', (event) => addGuest(event)));
 removeGuests.forEach(button => button.addEventListener('click', (event) => removeGuest(event)));

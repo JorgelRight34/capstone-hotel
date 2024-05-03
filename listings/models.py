@@ -78,7 +78,7 @@ class Comment(models.Model):
 
         return comments_json
 
-
+                
 class Listing(models.Model):
     author = models.ForeignKey('accounts.User', related_name='listings', on_delete=models.CASCADE, blank=False, null=False)
     title = models.CharField(max_length=255)
@@ -100,6 +100,7 @@ class Listing(models.Model):
     def __str__(self):
         return f"Title: {self.title}, Description: {self.description}, Date: {self.date}"
     
+
     @property
     def last_stay(self):
         stay = self.stays.filter(status='accepted').order_by('-date').first()
@@ -142,13 +143,20 @@ class Listing(models.Model):
     @staticmethod
     def render_posts_json(posts, user):
         posts_json = []
-
         for post in posts:
             if user.wishlist.is_in_wishlist(post):
                 post.is_in_wishlist = True
             posts_json.append(render_to_string('listings/post.html', {'post': post}))
 
-        return posts_json     
+        return posts_json   
+
+
+    def check_conflicts(self, check_in, check_out):
+        # Avoid having a stay at the same time of an accepted stay request
+        if (self.last_stay):
+            if self.last_stay.check_out <= check_out and self.last_stay.check_in >= check_in:
+                return True
+        return False 
 
 
 class Rating(models.Model):

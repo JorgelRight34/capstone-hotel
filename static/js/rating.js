@@ -1,5 +1,8 @@
 const ratingStarsContainer = document.getElementById('rating-stars');
-const stars = Array.from(ratingStarsContainer.querySelectorAll('.fa-regular.fa-star'));
+let stars;
+if (ratingStarsContainer) {
+    stars = Array.from(ratingStarsContainer.querySelectorAll('.fa-regular.fa-star'));
+};
 const ratingForm = document.getElementById('rating-form');
 let rating = 0;
 

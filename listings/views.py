@@ -277,7 +277,7 @@ def rate(request, listing):
         return HttpResponse(status=204)
 
 
-def search_posts(request):
+def search_listings(request):
     # Get all GET parameters
     q = request.GET.get('q')
     order = request.GET.get('order_by', 'date')
@@ -288,6 +288,9 @@ def search_posts(request):
     beds = request.GET.get('beds') or 1
     bedrooms = request.GET.get('bedrooms') or 1
     bathrooms = request.GET.get('bathrooms') or 1
+
+    check_in = datetime.strptime(request.GET.get('check_in'), '%Y-%m-%d').date() if request.GET.get('check_in') else datetime.today().date()
+    check_out = datetime.strptime(request.GET.get('check_out'), '%Y-%m-%d').date() if request.GET.get('check_out') else datetime.today().date()
 
     amenities = {
         'Wifi': request.GET.get('wifi') or False,
@@ -301,6 +304,7 @@ def search_posts(request):
         'category': request.GET.get('category'),
         'author': request.GET.get('author'),
         'type': request.GET.get('place-type'),
+        'guests': request.GET.get('guests'),
     }
 
     # Populate paginator parameters only the non null ones
@@ -317,9 +321,9 @@ def search_posts(request):
     if parameters['author']:
         paginator_parameters['author'] = User.objects.get(username=parameters['author'])
 
-    # Get all posts from a query if a query was given
+    # Get all listings from a query if a query was given
     if q:
-        posts = Listing.objects.filter(
+        listings = Listing.objects.filter(
             Q(title__icontains=q) | 
             Q(description__icontains=q) | 
             Q(category__category__icontains=q), 
@@ -331,7 +335,7 @@ def search_posts(request):
         ).order_by(order)
     else:
         # Unpack parameters 
-        posts = Listing.objects.filter(
+        listings = Listing.objects.filter(
             Q(price__gte=min_price) & Q(price__lte=max_price), 
             Q(beds__gte=beds),
             Q(bedrooms__gte=bedrooms),
@@ -340,44 +344,50 @@ def search_posts(request):
         ).order_by(order)
 
     # If amenities only get the listings which have the provided amenities
-    filtered_posts = []
-    for post in posts:
+    filtered_listings = []
+    for listing in listings:
         contains_all = True
         for amenitie in amenities.keys():
             if amenities[amenitie]:
+                print(amenitie)
                 amenitie = Amenitie.objects.get(amenitie=amenitie)
-                if post.title not in [listing.title for listing in amenitie.listing.all()]:
+                if listing.title not in [listing.title for listing in amenitie.listing.all()]:
                     contains_all = False
                     break
         if contains_all:
-            filtered_posts.append(post)
+            filtered_listings.append(listing)
+    listings = filtered_listings if filtered_listings else listings
 
-    posts = filtered_posts
+    # If check-in and check-out dates were provided but are not in the wishlist
+    for listing in listings:
+        if listing.check_conflicts(check_in, check_out):
+            print("removing")
+            listings.remove(listing)
 
-    # If wishlist was defined then get all posts from wishlist
+    # If wishlist was defined then get all listings from wishlist
     if wishlist:
       wishlist = request.user.wishlist.listings.all()
-      for post in posts:
-          # If post not in wishlist then remove it from posts
-          if post.id not in [wishlist_listing.listing.id for wishlist_listing in wishlist]:
-              posts.remove(post)
+      for listing in listings:
+          # If listing not in wishlist then remove it from posts
+          if listing.id not in [wishlist_listing.listing.id for wishlist_listing in wishlist]:
+              listings.remove(listing)
 
     # Paginator
-    posts = Paginator(posts, POSTS_PER_PAGE)
+    listings = Paginator(listings, POSTS_PER_PAGE)
 
     # Get page
     page = request.GET.get('page') or 1
 
     try:
-        posts = posts.page(page)
+        listings = listings.page(page)
     except EmptyPage:
         return HttpResponse(status=404)
 
     # If first page is empty, it won't throw EmptyPage error then return 404
-    if not posts:
+    if not listings:
         return HttpResponse(status=404)
     
-    return JsonResponse(Listing.render_posts_json(posts, request.user), safe=False)
+    return JsonResponse(Listing.render_posts_json(listings, request.user), safe=False)
 
 
 @login_required

@@ -79,8 +79,12 @@
     
     <!-- Advanced Search -->
     <div class="col-md-2">
-        <button class="container border rounded shadow-sm w-50 p-1 bg-white" id="advanced-search-button">
+        <button class="container border rounded shadow-sm w-50 p-1 bg-white position-relative" id="advanced-search-button">
             <i class="fa-solid fa-filter text-center mx-1"></i>Filters
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info d-none" id="applied-filters">
+                0
+                <span class="visually-hidden">Applied filters</span>
+            </span>
         </button>
     </div>
         
@@ -326,13 +330,13 @@
                     <div class="mb-3 d-flex">
                         <div class="p-1 w-50">
                             <div class="form-floating">
-                                <input type="date" class="form-control" id="check-in" name="check-in" min="{{ last_check_out }}" value="{{ last_check_out }}" required>
+                                <input type="date" class="form-control" id="check-in" name="check-in" min="{{ last_check_out }}" value="{{ last_check_out }}">
                                 <label for="check-in">Check In</label>
                             </div>
                         </div>
                         <div class="p-1 w-50">
                             <div class="form-floating">
-                                <input type="date" class="form-control" id="check-out" name="check-out" min="{{ last_check_out }}" value="{{ last_check_out }}" required>
+                                <input type="date" class="form-control" id="check-out" name="check-out" min="{{ last_check_out }}" value="{{ last_check_out }}">
                                 <label for="check-out">Check Out</label>
                             </div>
                         </div>

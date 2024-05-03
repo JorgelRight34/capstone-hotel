@@ -48,7 +48,7 @@ const getQuery = () => {
 
 
 const searchUserPosts = async () => {
-    const response = await fetch(`/search-posts?order_by=${order}&author=${username}&q=${getQuery()}`);
+    const response = await fetch(`/search-listings?order_by=${order}&author=${username}&q=${getQuery()}`);
     let posts = await response.json();
 
     reloadPosts(posts);
@@ -56,7 +56,7 @@ const searchUserPosts = async () => {
 
 
 const searchWishlistListings = async () => {
-    const response = await fetch(`/search-posts?order_by=${order}&q=${getQuery()}&wishlist=True`);
+    const response = await fetch(`/search-listings?order_by=${order}&q=${getQuery()}&wishlist=True`);
     let posts = await response.json();
 
     reloadPosts(posts);
@@ -71,11 +71,11 @@ const orderPosts = async (order_value) => {
 
     order = order_value;
 
-    const response = await fetch(`/search-posts?order_by=${order_value}&category=${category}&author=${username || ''}&q=${getQuery()}&wishlist=${wishlist}`);
+    const response = await fetch(`/search-listings?order_by=${order_value}&category=${category}&author=${username || ''}&q=${getQuery()}&wishlist=${wishlist}`);
     let posts = await response.json();
 
     reloadPosts(posts);
-}
+};
 
 
 const loadPosts = async () => {
@@ -83,7 +83,7 @@ const loadPosts = async () => {
     const url = new URL(currentURL);
     const username = url.pathname.split('/')[1];
 
-    const response = await fetch(`user-posts/${username}`)
+    const response = await fetch(`user-posts/${username}`);
     posts = response.json();
 
     posts.forEach(post => postsContainer.innerHTML += loadPost(post));
@@ -120,41 +120,41 @@ const loadMoreUserPosts = async () => {
         // Check if user is in #posts section
         if (window.location.href !== '#posts') {
             return;
-        }
+        };
 
         // Load more items when scrolled to the bottom
         posts_page += 1;
-        const response = await fetch(`/search-posts?author=${username}?page=${posts_page}`);
+        const response = await fetch(`/search-listings?author=${username}?page=${posts_page}`);
 
         if (response.status === 404) {
             return;
-        }
+        };
         
         const posts = await response.json();
 
         for (const post in posts) {
             postsContainer.insertAdjacentHTML('beforeend', posts[post]);
-        }
+        };
 
         loadPostEventListeners();
-    }
-}
+    };
+};
 
 
 const loadMoreUserComments = async () => {
    if (Math.round(window.innerHeight + window.scrollY)  >= document.body.offsetHeight) {
         if (window.location.hash !== '#comments') {
             return;
-        }
+        };
 
-        const response = await fetch(`/user-comments/${username}?page=${comments_page}`)
+        const response = await fetch(`/user-comments/${username}?page=${comments_page}`);
         const comments = await response.json();
 
         for (const comment in comments) {
             sections['#comments'].insertAdjacentHTML('beforeend', comments[comment]);
-        }
-    }
-}
+        };
+    };
+};
 
 
 window.onscroll = loadMoreUserPosts;
