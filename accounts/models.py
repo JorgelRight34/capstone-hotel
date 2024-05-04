@@ -30,6 +30,62 @@ class User(AbstractUser):
         return self.wishlist
     
 
+    @property
+    def notifications(self):
+        notifications = [n.serialize() for n in self.request_to_book_notifications.all()] + [n.serialize() for n in self.comment_notifications.all()]
+        return notifications
+    
+
+class CommentNotification(models.Model):
+    notificator = models.ForeignKey(User, related_name='comment_notifications', blank=False, null=False, on_delete=models.CASCADE)
+    notificated = models.ForeignKey(User, related_name='comment_received_notifications', blank=False, null=False, on_delete=models.CASCADE)
+    notification = models.ForeignKey('listings.Comment', related_name='listing_notifications', blank=False, null=False, on_delete=models.CASCADE)
+
+
+    def delete_notification(self, user):
+        if self.notificator == user:
+            self.delete()
+
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'notificator': {
+                'username': self.notificator.username, 'profile_pic': self.notificator.profile_pic.url
+            },
+            'notificated': {
+                'username': self.notificated.username, 'profile_pic': self.notificated.profile_pic.url
+            },
+            'type': 'comment',
+            'notification': self.notification.serialize()
+        }
+    
+
+class RequestToBookNotification(models.Model):
+    notificator = models.ForeignKey(User, related_name='request_to_book_notifications', blank=False, null=False, on_delete=models.CASCADE)
+    notificated = models.ForeignKey(User, related_name='request_to_book_received_notifications', blank=False, null=False, on_delete=models.CASCADE)
+    notification = models.ForeignKey('reservations.Stay', related_name='request_to_book_notifications', blank=False, null=False, on_delete=models.CASCADE)
+
+
+    def delete_notification(self, user):
+        if self.notificator == user:
+            self.delete()
+
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'notificator': {
+                'username': self.notificator.username, 'profile_pic': self.notificator.profile_pic.url
+            },
+            'notificated': {
+                'username': self.notificated.username, 'profile_pic': self.notificated.profile_pic.url
+            },
+            'type': 'request_to_book',
+            'notification': self.notification.serialize()
+        }
+    
+
 class Wishlist(models.Model):
     user = models.OneToOneField(User, related_name='wishlist', on_delete=models.CASCADE, blank=False, null=False)
 
@@ -63,12 +119,6 @@ class Wishlist(models.Model):
     def clear_wishlist(self):
         for listing in self.listings.all():
             listing.delete()
-
-
-@receiver(post_save, sender=User)
-def create_user_wishlist(sender, instance, created, **kwargs):
-    if created:
-        Wishlist.objects.create(user=instance)
         
 
 class WishlistListing(models.Model):
@@ -78,3 +128,9 @@ class WishlistListing(models.Model):
     
     def __str__(self):
         return str(self.listing)
+    
+
+@receiver(post_save, sender=User)
+def create_user_wishlist(sender, instance, created, **kwargs):
+    if created:
+        Wishlist.objects.create(user=instance)

@@ -134,7 +134,11 @@ detailButtons.forEach(button => button.addEventListener('click', (event) => open
 closeDetailButtons.forEach(button => button.addEventListener('click', (event) => closeDetails(event)));
 declineReservationButtons.forEach(button => button.addEventListener('click', (event) => declineRequest(event)));
 requestLinks.forEach(link => link.addEventListener('click', (event) => showSection(event)));
-orderRequestsSelect.onchange = searchRequests;
-searchRequestsInput.onkeyup = searchRequests;
-window.onscroll = loadMoreRequests;
+if (orderRequestsSelect) {
+    orderRequestsSelect.onchange = searchRequests;
+    window.onscroll = loadMoreRequests;
+};
+if (searchRequestsInput) {
+    searchRequestsInput.onkeyup = searchRequests;
+}
 renderRatingStars();

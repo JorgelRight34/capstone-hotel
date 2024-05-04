@@ -11,6 +11,7 @@ from datetime import datetime
 from django.db.models import Q
 
 from .models import Stay
+from accounts.models import RequestToBookNotification
 from listings.models import Listing
 
 stripe.api_key = settings.SECRET_STRIPE_TEST_KEY
@@ -45,11 +46,6 @@ def decline_request(request, reservation):
     request_to_book.save()
 
     return HttpResponse(status=204)
-
-
-@login_required
-def notifications(request):
-    return JsonResponse(Stay.serialize_requests(request.user.stays.all()), safe=False)
 
 
 def paginate(paginator, page):
@@ -112,11 +108,20 @@ def reserve(request, listing):
                         check_out=check_out,
                     )
             stay.save()
+            # Create notification
+            RequestToBookNotification(notificator=request.user, notificated=listing.author, notification=stay).save()
 
             return JsonResponse({"Worked": "True"})
         except:
             return JsonResponse({"Worked": "False"})
         
+    # Get starting check in
+    starting_check_in = ''
+    if listing.last_stay:
+        if listing.last_stay.check_out < datetime.now():
+            starting_check_in = datetime.now().strftime('%Y-%m-%d')
+        else:
+            starting_check_in = listing.last_stay.check_out.strftime('%Y-%m-%d')
 
     details = {'adults': adults, 
                'children': children, 
@@ -126,8 +131,9 @@ def reserve(request, listing):
                'total': listing.price * nights,
                'check_in': request.GET['check-in'],
                'check_out': request.GET['check-out'],
-               'last_check_out': listing.last_stay.check_out.strftime('%Y-%m-%d') if listing.last_stay else datetime.now().strftime('%Y-%m-%d')
+               'starting_check_in': starting_check_in
     }
+
 
     return render(request, 'reservations/reserve.html', {
         'listing': listing,
@@ -137,12 +143,12 @@ def reserve(request, listing):
 
 
 def requests_to_book(request):
-    """Load pending, accepted and declined requests of user"""
+    """Load pending, accepted and declined requests received by user"""
     # Get page for pending requests
     pending_page = request.GET.get('pending_page')
 
     # Paginator
-    pending_requests = Paginator(request.user.stays.filter(status='pending'), ITEMS_PER_PAGE)
+    pending_requests = Paginator(request.user.stays.filter(listing__author=request.user, status='pending'), ITEMS_PER_PAGE)
     pending_requests = paginate(pending_requests, pending_page)
 
 
@@ -150,7 +156,7 @@ def requests_to_book(request):
     accepted_page = request.GET.get('accepted_page')
 
     # Paginator
-    accepted_requests = Paginator(request.user.stays.filter(status='accepted'), ITEMS_PER_PAGE)
+    accepted_requests = Paginator(request.user.stays.filter(listing__author=request.user, status='accepted'), ITEMS_PER_PAGE)
     accepted_requests = paginate(accepted_requests, accepted_page)
 
 
@@ -158,7 +164,7 @@ def requests_to_book(request):
     declined_page = request.GET.get('declined_page')
 
     # Paginator
-    declined_requests = Paginator(request.user.stays.filter(status='declined'), ITEMS_PER_PAGE)
+    declined_requests = Paginator(request.user.stays.filter(listing__author=request.user, status='declined'), ITEMS_PER_PAGE)
     declined_requests = paginate(declined_requests, declined_page)
 
 
@@ -171,7 +177,40 @@ def requests_to_book(request):
 
 def request_to_book(request, id):
     request_to_book = get_object_or_404(Stay, pk=id)
-    return render(request, 'request_view.html', {'request_to_book': request_to_book})
+    return render(request, 'reservations/request_view.html', {'request_to_book': request_to_book})
+
+
+def sent_requests_to_book(request):
+    """Load pending, accepted and declined requests sent by user"""
+    # Get page for pending requests
+    pending_page = request.GET.get('pending_page')
+
+    # Paginator
+    pending_requests = Paginator(request.user.stays.filter(buyer=request.user, status='pending'), ITEMS_PER_PAGE)
+    pending_requests = paginate(pending_requests, pending_page)
+
+
+    # Get page for accepted requests
+    accepted_page = request.GET.get('accepted_page')
+
+    # Paginator
+    accepted_requests = Paginator(request.user.stays.filter(buyer=request.user, status='accepted'), ITEMS_PER_PAGE)
+    accepted_requests = paginate(accepted_requests, accepted_page)
+
+
+    # Get page for declined requests
+    declined_page = request.GET.get('declined_page')
+
+    # Paginator
+    declined_requests = Paginator(request.user.stays.filter(buyer=request.user, status='declined'), ITEMS_PER_PAGE)
+    declined_requests = paginate(declined_requests, declined_page)
+
+
+    return render(request, 'reservations/requests.html', {
+        'pending_requests': pending_requests,
+        'accepted_requests': accepted_requests,
+        'declined_requests': declined_requests
+    })
 
 
 def search_requests(request):

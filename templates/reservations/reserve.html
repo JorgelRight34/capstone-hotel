@@ -22,13 +22,13 @@
                         <div class="d-flex">
                             <div class="p-1 w-50">
                                 <div class="form-floating">
-                                    <input type="date" class="form-control" id="check-in" name="check-in" min="{{ details.last_check_out }}" value="{{ details.check_in }}" required>
+                                    <input type="date" class="form-control" id="check-in" name="check-in" min="{{ details.starting_check_in }}" value="{{ details.starting_check_in }}" required>
                                     <label for="check-in">Check In</label>
                                 </div>
                             </div>
                             <div class="p-1 w-50">
                                 <div class="form-floating">
-                                    <input type="date" class="form-control" id="check-out" name="check-out" min="{{ details.last_check_out }}" value="{{ details.check_out }}" required>
+                                    <input type="date" class="form-control" id="check-out" name="check-out" min="{{ details.starting_check_in }}" value="{{ details.starting_check_in }}" required>
                                     <label for="check-out">Check Out</label>
                                 </div>
                             </div>

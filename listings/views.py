@@ -13,7 +13,7 @@ from django.template.loader import render_to_string
 from datetime import datetime
 
 from .models import Amenitie, Listing, ListingImage, Comment, Category, Rating
-from accounts.models import User
+from accounts.models import User, CommentNotification
 
 ITEMS_PER_PAGE = 10
 POSTS_PER_PAGE = 6
@@ -102,15 +102,18 @@ def categories(request):
 @login_required
 def comment(request, post):
     if request.method == 'POST':
-        post = get_object_or_404(Listing, pk=post)
+        listing = get_object_or_404(Listing, pk=post)
 
         # Allow only buyers to comment
-        if not request.user.has_reserved(post.id):
+        if not request.user.has_reserved(listing.id):
             return HttpResponse(status=405)
         
         # Create comment
-        comment = Comment(author=request.user, post=post, comment=request.POST['comment'])
+        comment = Comment(author=request.user, listing=listing, comment=request.POST['comment'])
         comment.save()
+
+        # Create notification
+        CommentNotification(notificator=request.user, notificated=listing.author, notification=comment).save()
 
         return JsonResponse(comment.serialize())
     
@@ -240,13 +243,20 @@ def post_details(request, post):
         amenities_sliced = amenities[start_index:end_index]
 
     print(amenities_pages)
+    # Get starting check in
+    starting_check_in = ''
+    if post.last_stay:
+        if post.last_stay.check_out < datetime.now():
+            starting_check_in = datetime.now().strftime('%Y-%m-%d')
+        else:
+            starting_check_in = post.last_stay.check_out.strftime('%Y-%m-%d')
 
     return render(request, 'listings/post_details.html', {
         'post': post,
         'comments': comments,
         'stripe_key': settings.STRIPE_TEST_PUBLISHABLE_KEY,
         'has_reserved': has_reserved,
-        'last_check_out': post.last_stay.check_out.strftime('%Y-%m-%d') if post.last_stay else datetime.now().strftime('%Y-%m-%d'),
+        'starting_check_in': starting_check_in,
         'amenities': amenities_pages
     })
 

@@ -2,10 +2,11 @@
 
 {% load static %}
 
-{% block title %}{{ request_to_book.notificator.username }}'s Trip{% endblock %} 
+{% block title %}{{ request_to_book.buyer.username }}'s Trip{% endblock %} 
 
 {% block body %}
 <div class="p-3 d-flex justify-content-center align-items-center">
-    {% include 'request.html' %}
+    {% include 'reservations/request_details.html' %}
 </div>
+<script src="{% static 'js/requests.js' %}"></script>
 {% endblock %}

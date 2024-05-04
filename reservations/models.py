@@ -26,6 +26,7 @@ class Stay(models.Model):
         return {
             'id': self.id,
             'buyer': self.buyer.username,
+            'buyer_profile_pic': self.buyer.profile_pic.url,
             'listing': self.listing.serialize(),
             'check_in': self.check_in,
             'check_out': self.check_out,
@@ -35,7 +36,7 @@ class Stay(models.Model):
             'infants': self.infants,
             'pets': self.pets,
             'nights': self.nights,
-            'price': self.price
+            'price': self.price,
         }
 
 

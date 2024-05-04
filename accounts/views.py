@@ -6,10 +6,25 @@ from django.urls import reverse
 from django.db import IntegrityError
 from django.core.paginator import EmptyPage, Paginator, PageNotAnInteger
 
-from .models import User, Wishlist, WishlistListing
+from .models import User, RequestToBookNotification, CommentNotification, Wishlist, WishlistListing
 
 
 # Create your views here.
+@login_required
+def delete_notification(request, type, notification):
+    match (type):
+        case 'comment':
+            notification = get_object_or_404(CommentNotification, pk=notification)
+            notification.delete_notification(request.user)
+            return HttpResponse(status=204)
+        case 'request_to_book':
+            notification = get_object_or_404(RequestToBookNotification, pk=notification)
+            notification.delete_notification(request.user)
+            return HttpResponse(status=204)
+        
+    return HttpResponse(status=404)
+
+
 @login_required
 def edit_profile(request):
     if request.method == 'POST':
@@ -121,3 +136,8 @@ def profile(request, username):
         "posts": posts,
         "comments": comments
     })
+
+
+@login_required
+def notifications(request):
+    return JsonResponse(request.user.notifications, safe=False)

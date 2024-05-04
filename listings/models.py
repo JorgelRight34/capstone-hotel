@@ -44,7 +44,7 @@ class Category(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey('accounts.User', related_name='comments', on_delete=models.CASCADE, blank=False, null=False)
-    post = models.ForeignKey('Listing', related_name='comments', on_delete=models.CASCADE, blank=False, null=False)
+    listing = models.ForeignKey('Listing', related_name='comments', on_delete=models.CASCADE, blank=False, null=False)
     comment = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
 
@@ -52,23 +52,25 @@ class Comment(models.Model):
     def __str__(self):
         return self.comment
     
+
     def serialize(self):
         return {
-                "id": self.id,
-                "author": {
-                    "username": self.author.username, 
-                    "profile_pic": self.author.profile_pic.url 
+                'id': self.id,
+                'author': {
+                    'username': self.author.username, 
+                    'profile_pic': self.author.profile_pic.url 
                 }, 
-                "post": str(self.post), 
-                "comment": self.comment, 
-                "date": {
-                    "day": self.date.day,
-                    "month": self.date.month,
-                    "year": self.date.year, 
+                'listing': self.listing.serialize(),
+                'comment': self.comment, 
+                'date': {
+                    'day': self.date.day,
+                    'month': self.date.month,
+                    'year': self.date.year, 
                 },
-                "full-date": self.date.strftime("%B %d, %Y, %I:%M %p")
+                'full-date': self.date.strftime('%B %d, %Y, %I:%M %p')
         }
     
+
     @staticmethod
     def render_comments_json(comments, user):
         comments_json = {}

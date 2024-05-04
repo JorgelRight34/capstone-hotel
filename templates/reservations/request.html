@@ -3,7 +3,7 @@
     <div class="col-lg-6 container border p-3">
         <h3>Request to Book</h3>
         <div class="row mb-3">
-            <h6>{{ request_to_book.notificator }}'s Trip</h6>
+            <h6>{{ request_to_book.buyer }}'s Trip</h6>
         </div>
         <div class="row mb-3">
             <!-- Check In & Check Out -->
@@ -12,11 +12,11 @@
                 <div class="d-flex">
                     <div class="w-50">
                         <h6>Check In</h6>
-                        <span>{{ request_to_book.stay.check_in }}</span>
+                        <span>{{ request_to_book.check_in }}</span>
                     </div>
                     <div class="w-50">
                         <h6>Check Out</h6>
-                        <span>{{ request_to_book.stay.check_out }}</span>
+                        <span>{{ request_to_book.check_out }}</span>
                     </div>
                 </div>
             </div>
@@ -25,10 +25,10 @@
                 <h6>Guests</h6>
                 <div>
                     <span>
-                        {{ request_to_book.stay.adults }} adults, 
-                        {{ request_to_book.stay.children }} children, 
-                        {{ request_to_book.stay.infants }} infants, 
-                        {{ request_to_book.stay.pets}} pets.
+                        {{ request_to_book.adults }} adults, 
+                        {{ request_to_book.children }} children, 
+                        {{ request_to_book.infants }} infants, 
+                        {{ request_to_book.pets}} pets.
                     </span>
                 </div>               
             </div>
@@ -44,11 +44,11 @@
         <div class="container border bg-white p-3">
             <div class="row">
                 <div class="col-3 p-3">
-                    <img src="{{ request_to_book.stay.listing.images.all.0.image.url }}" class="img-fluid">
+                    <img src="{{ request_to_book.listing.images.all.0.image.url }}" class="img-fluid">
                 </div>
                 <div class="col-9 p-3">
                     <h6>
-                        <a class="text-decoration-none text-dark" href="{% url 'post_details' request_to_book.stay.listing.id %}">
+                        <a class="text-decoration-none text-dark" href="{% url 'post_details' request_to_book.listing.id %}">
                             {{ request_to_book.stay.listing.title }}
                         </a>
                     </h6>
@@ -56,8 +56,8 @@
                         <span class="text-muted">{{ request_to_book.stay.listing.category }}</span>
                     </div>            
                     <div>
-                        <img src="{{ request_to_book.stay.listing.author.profile_pic.url }}" class="profile-pic">
-                        <span class="mx-1">{{ request_to_book.stay.listing.author }}</span>
+                        <img src="{{ request_to_book.listing.author.profile_pic.url }}" class="profile-pic">
+                        <span class="mx-1">{{ request_to_book.listing.author }}</span>
                     </div>
                 </div>
             </div>
@@ -69,7 +69,7 @@
                 <div class="row">
                     <div class="col-6">
                         <div class="mb-3">
-                            <span class="text-muted">${{ request_to_book.stay.listing.price }} x {{ request_to_book.stay.nights }} nights</span> 
+                            <span class="text-muted">${{ request_to_book.listing.price }} x {{ request_to_book.nights }} nights</span> 
                         </div>
                         <div class="mb-3">
                             <span class="text-muted">Cleaning fee</span>
@@ -81,7 +81,7 @@
 
                     <div class="col-6 d-flex justify-content-end">
                         <div class="mb-3">
-                            <span class="text-muted">${{ request_to_book.stay.price }} USD</span>
+                            <span class="text-muted">${{ request_to_book.price }} USD</span>
                         </div>
                     </div>
                 </div>
