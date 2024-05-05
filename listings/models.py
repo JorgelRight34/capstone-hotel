@@ -74,10 +74,8 @@ class Comment(models.Model):
     @staticmethod
     def render_comments_json(comments, user):
         comments_json = {}
-
         for comment in comments:
-            comments_json[f'{comment.id}'] = render_to_string('comment.html', {'comment': comment, 'user': user})
-
+            comments_json[f'{comment.id}'] = render_to_string('listings/comment.html', {'comment': comment, 'user': user})
         return comments_json
 
                 

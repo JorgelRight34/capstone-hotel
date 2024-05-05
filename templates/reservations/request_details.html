@@ -1,4 +1,4 @@
-<div class="container w-75 border rounded p-3 shadow-sm request mb-3">
+<div class="container w-75 border rounded p-3 shadow-sm listing mb-3">
     <div class="row">
         <div class="col-lg-6">
             <img src="{{ request_to_book.listing.images.all.0.image.url }}" class="img-fluid mb-3">
@@ -7,7 +7,7 @@
                 <div class="mb-1 d-flex justify-content-center align-items-center">
                     <h4 id="rating">{{ request_to_book.listing.rating }}</h4>
                 </div>
-                <div class="d-flex justify-content-center align-items-center mb-1 rating-stars" id="rating-stars" data-item="{{ post.id }}">
+                <div class="d-flex justify-content-center align-items-center mb-1 rating-stars">
                     <i class="fa-regular fa-star mx-1 rating-star fs-6" id="1"></i>
                     <i class="fa-regular fa-star mx-1 rating-star fs-6" id="2"></i>
                     <i class="fa-regular fa-star mx-1 rating-star fs-6" id="3"></i>

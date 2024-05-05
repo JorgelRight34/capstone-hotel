@@ -1,3 +1,4 @@
+const postsContainer = document.querySelector('.posts-container');
 const postsSearchBar = document.getElementById('posts-search-bar');
 const postsSearchForm = document.getElementById('posts-search-form');
 const advancedSearchButton = document.getElementById('advanced-search-button');
@@ -12,17 +13,20 @@ const categoriesOptions = Array.from(document.querySelectorAll('.category-link')
 const indexPostsContainer = document.querySelector('.posts-container');
 const currentCategory = document.getElementById('current-category');
 
+const selectOrderOption = document.querySelector('select[name="select-order"]');
+
 const appliedFiltersText = document.getElementById('applied-filters');
 let appliedFilters = 0;
 
 let page = 1;
+let order = 'date';
 let place_type = '';
 let min_price = 0
 let max_price = 2000;
 let beds = 1;
 let bedrooms = 1;
 let bathrooms = 1;
-let category;
+let category = '';
 let wifi = '';
 let washer = '';
 let air_conditioning = '';
@@ -32,24 +36,29 @@ let check_in = '';
 let check_out = '';
 
 
-const searchPosts = async (event) => {
+const getQuery = () => {
+    try {
+        return searchUserPostsInput.value;
+    } catch {
+        try {
+            return postsSearchBar.value;
+        }
+        catch {
+            try {
+                return searchWishlistListingsInput.value;
+            } catch {
+                return '';
+            };
+        };
+    };
+};
+
+
+const searchPosts = async (event, empty=false) => {
     event.preventDefault();
-
-    const last_category = category;
-    category = window.location.hash.replace('#', '');
-   
-    if (last_category !== category && event.target.tagName === 'FORM') {
-        page = 0;
-    };
-
-    let user = document.getElementById('profile-user') || '';
-    if (user) {
-        user = user.value;
-    };
 
     const response = await fetch(
         '/search-listings?' +
-        `author=${user}&` +
         `order_by=${order}&` +
         `category=${category}&` +
         `page=${page + 1}&` +
@@ -68,13 +77,13 @@ const searchPosts = async (event) => {
         `check_out=${check_out}`
     );
 
-    if (response.status === 404 && event.target.tagName === 'FORM') {
+    if (response.status === 404 && empty) {
         loadMessage("<strong>No matches</strong> can't find what you are looking for.", 'danger');
         postsContainer.innerHTML = '';
         return;
     };
 
-    if (event.target.tagName === 'FORM') {
+    if (empty) {
         postsContainer.innerHTML = '';
     }
 
@@ -90,6 +99,15 @@ const searchPosts = async (event) => {
     };
 
     loadPostEventListeners();
+    renderRatingStars();
+};
+
+
+const orderPosts = async (event) => { 
+    order = selectOrderOption.value;
+    page = 0;
+    console.log("Searching posts---------")
+    searchPosts(event, empty=true);
 };
 
 
@@ -190,7 +208,7 @@ const advancedSearch = (event) => {
     check_out = advancedSearchForm.querySelector('#check-out').value;
     page = 0;
 
-    searchPosts(event);
+    searchPosts(event, empty=true);
     updateAppliedFiltersText();
 };
 
@@ -211,17 +229,24 @@ const closeAdvancedSearchDialog = () => {
 
 
 const showCategoryPosts = (event) => {
+    const last_category = category;
+    const categoryHash = window.location.hash.replace('#', '')
+    category = categoryHash === 'all' ? '' : categoryHash;
+    if ((last_category !== category) || !category) {
+        page = 0;
+    };
+    console.log("Category--------------------")
     window.location.hash = event.target.dataset.category;
-    searchPosts(event);
-    posts = Array.from(postsContainer.querySelectorAll('.post-widget'));
+    searchPosts(event, empty=true);
 };
 
 
+selectOrderOption.onchange = (event) => orderPosts(event);
 clearAdvancedSearchFormButton.onclick = clearAdvancedSearchForm;
 categoriesOptions.forEach(option => option.addEventListener('click', (event) => showCategoryPosts(event)));
 roomsAndBedsButtons.forEach(button => button.onclick = (event) => changeRoomsAndBedsInput(event));
 window.onscroll = loadMorePosts;
-postsSearchForm.addEventListener('submit', (event) => searchAllPosts(event));
+postsSearchForm.addEventListener('submit', (event) => searchPosts(event));
 advancedSearchButton.onclick = openAdvancedSearchDialog;
 advancedSearchForm.onsubmit = (event) => advancedSearch(event);
 closeAdvancedSearchDialogButton.onclick = closeAdvancedSearchDialog;

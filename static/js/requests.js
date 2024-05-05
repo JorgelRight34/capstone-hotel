@@ -30,30 +30,6 @@ const showSection = (event) => {
 };
 
 
-const renderRatingStars = () => {
-    const requests = Array.from(document.querySelectorAll('.request'));
-
-    requests.forEach(request => {
-        const ratingStars = Array.from(request.querySelectorAll('.rating-star'));
-        const rating = parseFloat(request.querySelector('#rating').textContent);
-
-        let sub = rating;
-        for (const star of ratingStars) {
-            if (sub === 0) {
-                return;
-            }
-            else if (sub > 0.5) {
-                star.classList = 'fa-solid fa-star mx-1 fs-6';
-            } else {
-                star.classList = 'fa-solid fa-star-half-stroke mx-1 fs-6';
-                return;
-            };
-            sub -= 1;
-        };
-    })
-};
-
-
 const openDetails = (event) => {
     const details =  document.getElementById(`request-${event.target.dataset.request}-details`);
     details.showModal();
@@ -118,15 +94,16 @@ const searchRequests = async (currentSectionURL=currentSection) => {
     };
 
     renderRatingStars();
-}
+};
+
 
 const loadMoreRequests = () => {
     if (Math.round(window.innerHeight + window.scrollY)  >= document.body.offsetHeight) {
         // Load more items when scrolled to the bottom
         page += 1
         searchRequests();
-    }
-}
+    };
+};
 
 
 acceptReservationButtons.forEach(button => button.addEventListener('click', (event) => acceptRequest(event)));
@@ -140,5 +117,4 @@ if (orderRequestsSelect) {
 };
 if (searchRequestsInput) {
     searchRequestsInput.onkeyup = searchRequests;
-}
-renderRatingStars();
+};

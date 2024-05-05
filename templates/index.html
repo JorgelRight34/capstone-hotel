@@ -17,9 +17,18 @@
                 </div>
                 <div class="col-md-6 col-sm-6">
                     <div class="carousel-inner">
+    
                         <div class="carousel-item active">
                             <div class="row d-flex justify-content-center">
-                                {% for category in categories.0 %}
+                                <a href="#all" class="category-link" data-category="all">
+                                    <div class="d-flex justify-content-center align-items-center" data-category="all">
+                                        <span class="fa-regular fa-compass" data-category="{{ category }}"></span>
+                                    </div>
+                                    <div class="d-flex justify-content-center align-items-center" data-category="all">
+                                        All
+                                    </div>      
+                                </a>
+                                {% for category in categories.0|slice:":-1" %}
                                 <a href="#{{ category }}" class="category-link" data-category="{{ category }}">
                                     <div class="d-flex justify-content-center align-items-center" data-category="{{ category }}">
                                         <span class="{{ category.icon }}" data-category="{{ category }}"></span>
@@ -60,6 +69,14 @@
 
         <!-- Categories for mobile devices -->
         <div class="categories-sm mb-3">
+            <a href="#all" class="category-link" data-category="all">
+                <div class="d-flex justify-content-center align-items-center" data-category="all">
+                    <span class="fa-regular fa-compass" data-category="{{ category }}"></span>
+                </div>
+                <div class="d-flex justify-content-center align-items-center" data-category="all">
+                    All
+                </div>      
+            </a>
             {% for category in categories %}
             {% for category in category %}
             <a href="#{{ category }}" class="category-link" data-category="{{ category }}">                               
@@ -96,6 +113,7 @@
                 <option value="price">Lesser price to greater price</option>
                 <option value="date">Date</option>
                 <option value="category">Category</option>
+                <option value="rating">Rating</option>
             </select>
         </div>
     </div>
@@ -384,8 +402,7 @@
         </div>
     </dialog>
 </div>
-<script src="{% static 'js/profile.js' %}"></script>
-<script src="{% static 'js/categories.js' %}"></script>
-<script src="{% static 'js/search_posts.js' %}"></script>
 <script src="{% static 'js/reserve.js' %}"></script>
+<script src="{% static 'js/rating.js' %}"></script>
+<script src="{% static 'js/search_posts.js' %}"></script>
 {% endblock %}

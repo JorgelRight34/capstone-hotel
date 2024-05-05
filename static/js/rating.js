@@ -4,7 +4,33 @@ if (ratingStarsContainer) {
     stars = Array.from(ratingStarsContainer.querySelectorAll('.fa-regular.fa-star'));
 };
 const ratingForm = document.getElementById('rating-form');
+const ratingText = document.querySelector('#rating') ? parseFloat(document.querySelector('#rating').textContent) : false;
 let rating = 0;
+
+
+const renderRatingStars = () => {
+    const listings = Array.from(document.querySelectorAll('.listing'));
+
+    listings.forEach(listing => {
+        const ratingStars = Array.from(listing.querySelectorAll('.rating-star'));
+        const rating = parseFloat(listing.querySelector('#rating').textContent || listing.querySelector('#rating').value);
+
+        let sub = rating;
+        for (const star of ratingStars) {
+            console.log(sub);
+            if (sub == 0) {
+                return;
+            }
+            else if (sub > 0.5) {
+                star.classList = 'fa-solid fa-star mx-1 fs-6 rating-star';
+            } else {
+                star.classList = 'fa-solid fa-star-half-stroke mx-1 fs-6 rating-star';
+                return;
+            };
+            sub -= 1;
+        };
+    });
+};
 
 
 const showCurrentRating = () => {
@@ -86,6 +112,8 @@ if (ratingStarsContainer) {
     stars.forEach(star => star.addEventListener('mousemove', (event) => fillStar(event)));
     stars.forEach(star => star.addEventListener('click', rate))
 };
+if (ratingText) {
+    showCurrentRating();
+}
 
-
-showCurrentRating();
+renderRatingStars();

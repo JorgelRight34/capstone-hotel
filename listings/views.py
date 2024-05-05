@@ -92,7 +92,7 @@ def wishlist(request):
     wishlist = [listing.listing for listing in request.user.wishlist.listings.all()]
     for listing in wishlist:
         listing.is_in_wishlist = request.user.wishlist.is_in_wishlist(listing)
-    return render(request, 'listings/cart.html', {'cart': wishlist})
+    return render(request, 'listings/wishlist.html', {'cart': wishlist})
 
 
 def categories(request):
@@ -161,16 +161,14 @@ def new_post(request):
         post = Listing()    
         category = get_object_or_404(Category, pk=category)
         post.author, post.title, post.description, post.price, post.category = author, title, description, price, category
-        post.location, post.guests, post.bedrooms, post.beds, post.bathrooms, post.place_type = location, guests, bedrooms, beds, bathrooms, place_type
+        post.location, post.guests, post.bedrooms, post.beds, post.bathrooms, post.type = location, guests, bedrooms, beds, bathrooms, place_type
         post.save()
 
         # Get amenities
         amenities_list = []
         if amenities := request.POST.getlist('amenitie'):
-            print(amenities)
             for amenitie in amenities:
                 amenitie = Amenitie.objects.get(pk=amenitie)
-                print("amenitie", amenitie )
                 amenitie.listing.set([post])
                 amenitie.save()
                 amenities_list.append(str(amenitie))
@@ -359,7 +357,6 @@ def search_listings(request):
         contains_all = True
         for amenitie in amenities.keys():
             if amenities[amenitie]:
-                print(amenitie)
                 amenitie = Amenitie.objects.get(amenitie=amenitie)
                 if listing.title not in [listing.title for listing in amenitie.listing.all()]:
                     contains_all = False
@@ -371,7 +368,6 @@ def search_listings(request):
     # If check-in and check-out dates were provided but are not in the wishlist
     for listing in listings:
         if listing.check_conflicts(check_in, check_out):
-            print("removing")
             listings.remove(listing)
 
     # If wishlist was defined then get all listings from wishlist

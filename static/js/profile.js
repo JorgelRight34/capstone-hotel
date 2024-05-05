@@ -29,37 +29,27 @@ const username = url.pathname.split('/')[2];
 const wishlist = searchWishlistListingsInput ? 'true' : ''
 
 
-const getQuery = () => {
-    try {
-        return searchUserPostsInput.value;
-    } catch {
-        try {
-            return postsSearchBar.value;
-        }
-        catch {
-            try {
-                return searchWishlistListingsInput.value;
-            } catch {
-                return '';
-            };
-        };
-    };
-}
+const searchPosts = async (url) => {
+    const response = await fetch(url);
 
+    if (response.status === 404) {
+        loadMessage("<strong>No matches</strong> can't find what you are looking for.", 'danger');
+        return;
+    }
+    posts_page += 1;
 
-const searchUserPosts = async () => {
-    const response = await fetch(`/search-listings?order_by=${order}&author=${username}&q=${getQuery()}`);
     let posts = await response.json();
-
     reloadPosts(posts);
 };
 
 
-const searchWishlistListings = async () => {
-    const response = await fetch(`/search-listings?order_by=${order}&q=${getQuery()}&wishlist=True`);
-    let posts = await response.json();
+const searchUserPosts = () => {
+    searchPosts(`/search-listings?order_by=${order}&author=${username}&q=${searchUserPostsInput.value}`);
+};
 
-    reloadPosts(posts);
+
+const searchWishlistListings = async () => {
+    searchPosts(`/search-listings?order_by=${order}&q=${(searchUserPostsInput || searchWishlistListingsInput).value}&wishlist=true`);
 };
 
 
@@ -68,25 +58,8 @@ const orderPosts = async (order_value) => {
     if (category) {
         category = category.value;
     };
-
     order = order_value;
-
-    const response = await fetch(`/search-listings?order_by=${order_value}&category=${category}&author=${username || ''}&q=${getQuery()}&wishlist=${wishlist}`);
-    let posts = await response.json();
-
-    reloadPosts(posts);
-};
-
-
-const loadPosts = async () => {
-    const currentURL = window.location.href;
-    const url = new URL(currentURL);
-    const username = url.pathname.split('/')[1];
-
-    const response = await fetch(`user-posts/${username}`);
-    posts = response.json();
-
-    posts.forEach(post => postsContainer.innerHTML += loadPost(post));
+    searchPosts(`/search-listings?order_by=${order_value}&category=${category}&q=${(searchUserPostsInput || searchWishlistListingsInput).value}&page=${1}&wishlist=${wishlist}`);
 };
 
 
@@ -94,6 +67,7 @@ const reloadPosts = (posts) => {
     postsContainer.innerHTML = ''
     posts.forEach(post => postsContainer.insertAdjacentHTML('beforeend', post));
     loadPostEventListeners();
+    renderRatingStars();
 };
 
 
@@ -116,27 +90,28 @@ const changeSection = () => {
 
 
 const loadMoreUserPosts = async () => {
-    if (Math.round(window.innerHeight + window.scrollY)  >= document.body.offsetHeight) {
+    if (Math.round(window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
         // Check if user is in #posts section
-        if (window.location.href !== '#posts') {
+        if (window.location.hash !== '#posts') {
             return;
         };
 
         // Load more items when scrolled to the bottom
-        posts_page += 1;
-        const response = await fetch(`/search-listings?author=${username}?page=${posts_page}`);
+        const response = await fetch(`/search-listings?author=${username}&q=${searchUserPostsInput.value}&page=${posts_page + 1}`);
 
         if (response.status === 404) {
             return;
         };
+        posts_page += 1;
         
         const posts = await response.json();
 
-        for (const post in posts) {
-            postsContainer.insertAdjacentHTML('beforeend', posts[post]);
+        for (const post of posts){
+            postsContainer.insertAdjacentHTML('beforeend', post);
         };
 
         loadPostEventListeners();
+        renderRatingStars();
     };
 };
 
@@ -158,7 +133,7 @@ const loadMoreUserComments = async () => {
 
 
 window.onscroll = loadMoreUserPosts;
-window.onscroll = loadMoreUserComments;
+window.addEventListener('scroll', loadMoreUserComments);
 
 if (selectOrderOption) {
     selectOrderOption.addEventListener('change', () => orderPosts(selectOrderOption.value));

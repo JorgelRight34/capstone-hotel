@@ -110,7 +110,7 @@ def profile(request, username):
     # Get page
     page = request.GET.get('items_page')
     
-    posts = Paginator(user.listings.all().order_by('-date'), 6)
+    posts = Paginator(user.listings.all().order_by('date'), 6)
     try:
         posts = posts.page(page)
     except PageNotAnInteger:

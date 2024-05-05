@@ -7,10 +7,9 @@
 {% block body %}
     <div class="p-3 container border rounded bg-white" id="posts">
         <div class="mb-3">
-            <div class="mb-3">
-                <span class="h3">TOTAL</span>: <span class="cart-total-price">0</span>
-            </div>
-            <span class="h3">ITEMS</span>: <span class="cart-total-items">0</span>
+            <span class="h4">
+                Listings: <span class="cart-total-items">0</span>
+            </span>
         </div>
         <div class="row mb-3 search-posts-options">
             <form class="col d-flex search-posts-container">
@@ -30,12 +29,13 @@
         <div class="posts-container">
             {% for item in cart %}
                 {% with post=item %}
-                    {% include 'post.html' %}
+                    {% include 'listings/post.html' %}
                 {% endwith %}
             {% empty %}
                 Posts
             {% endfor %}
         </div>
     </div>
+    <script src="{% static 'js/rating.js' %}"></script>
     <script src="{% static 'js/profile.js' %}"></script>
 {% endblock body %}
