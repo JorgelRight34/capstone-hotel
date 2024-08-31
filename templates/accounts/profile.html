@@ -65,13 +65,15 @@
                     {% for post in posts %}
                         {% include 'listings/post.html' %}
                     {% empty %}
-                        Posts
+                       No posts
                     {% endfor %}
                 </div>
             </div>
             <div id="comments" class="p-3 d-none">
                 {% for comment in comments %}
                     {% include 'listings/comment.html' %}
+                {% empty %}
+                    No comments
                 {% endfor %}
             </div>
         </div>

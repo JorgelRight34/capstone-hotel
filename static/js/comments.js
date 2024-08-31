@@ -1,4 +1,5 @@
 const commentForm = document.getElementById('comment-form');
+const commentFormContainer = document.getElementById('comment-form-container');
 const commentTextArea = document.getElementById('comment-textarea');
 const commentsContainer = document.getElementById('comments-container');
 const deleteCommentButtons = Array.from(document.querySelectorAll('.delete-comment'));
@@ -19,6 +20,7 @@ const deleteComment = async (event) => {
 
 const submitCommentForm = async (event) => {
     event.preventDefault()
+    commentFormContainer.remove();
 
     comment = await fetch(`/comment/${commentForm.dataset.post}`, {
         method: 'POST',

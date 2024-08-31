@@ -8,6 +8,14 @@
     border-bottom: 2px solid black;
 }
 
+body {
+    overflow-x: hidden;
+}
+
+.hover {
+    cursor: pointer;
+}
+
 .post-image-col {
     position: relative;
 }
@@ -30,35 +38,6 @@
     max-height: 40px;
     overflow-x: auto;
     white-space: nowrap;
-}
-
-.cart-buttons  {
-    display: flex;
-    justify-content: end;
-    position: absolute;
-    z-index: 3;
-    top: 0;
-    left: 0;
-    padding: 0.5rem;
-    width: 100%;
-}
-
-.cart-dropdown {
-    z-index: 4;
-    display: none;
-    width: 400px;
-    position: absolute;
-    right: 0.5rem;
-    max-height: 600px;
-}
-
-#cart-items {
-    max-height: 300px;
-    overflow: auto;
-}
-
-.cart:hover .cart-dropdown {
-    display: block;
 }
 
 .new-post-dialog {
@@ -135,6 +114,48 @@
 
 .white-circle:hover {
     cursor: pointer;
+}
+
+.wishlist-buttons  {
+    display: flex;
+    justify-content: end;
+    position: absolute;
+    z-index: 3;
+    top: 0;
+    left: 0;
+    padding: 0.5rem;
+    width: 100%;
+}
+
+.wishlist-dropdown {
+    z-index: 4;
+    display: none;
+    width: 400px;
+    position: absolute;
+    right: 0.5rem;
+    max-height: 600px;
+}
+
+#wishlist-items {
+    max-height: 300px;
+    overflow: auto;
+}
+
+.wishlist:hover .wishlist-dropdown {
+    display: block;
+}
+
+::-webkit-scrollbar {
+    width: 0.25em;
+}
+
+::-webkit-scrollbar-track {
+    background: white;
+}
+
+::-webkit-scrollbar-thumb {
+    background: darkgray;
+    border-radius: 100vw;
 }
 
 @media only screen and (max-width: 1200px) {
@@ -228,5 +249,18 @@
 
     .select-posts-order-container {
         width: 100%;
+    }
+}
+
+/* Hide scrollbar on devices with max-width of 600px */
+@media (max-width: 600px) {
+    /* For Webkit browsers (Chrome, Safari) */
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  
+    /* For Firefox */
+    html {
+      scrollbar-width: none;
     }
 }

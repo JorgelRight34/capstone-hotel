@@ -5,10 +5,10 @@
 {% block title %}{{ post.title }}{% endblock title %}
 
 {% block body %}
-<div class="container p-3">
-    <div class="container bg-white row p-0 border rounded post-details">
+<div class="container p-md-3" style="overflow-x: hidden;">
+    <div class="bg-white row p-0 border rounded post-details">
         <!-- Right Container -->
-        <div class="col p-0">
+        <div class="col-sm p-0">
             {% if post.images.all|length > 1 %}
                 <div id="postImagesCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="false">
                     <div class="carousel-indicators">
@@ -73,10 +73,10 @@
                         {% for amenitie in amenities_list %}
                         <div class="col-4 d-flex align-items-center justify-content-center">
                             <div class="container border rounded shadow-sm p-3 mx-3 amenitie">
-                                <div class="row mb-1">
+                                <div class="d-flex justify-content-center mx-auto mb-1">
                                     <i class="{{ amenitie.icon }} mx-auto"></i>
                                 </div>
-                                <div class="d-flex justify-content-center">
+                                <div class="d-flex justify-content-center text-truncate">
                                     {{ amenitie }}
                                 </div>
                             </div>
@@ -89,7 +89,7 @@
         </div>
 
         <!-- Second Container -->
-        <div class="col p-3">
+        <div class="col-sm p-3">
             {% if user.is_authenticated %}
             <!-- Update Form -->
             <form action="{% url 'update_post' %}" method="post" id="update-post-form" style="display: none;">
@@ -131,11 +131,10 @@
             <div id="info">
                 <div class="row mb-3" id="post-details-header">
                     <!-- Title -->
-                    <div class="col-9">
+                    <div class="col-8 col-md-9">
                         <h4 class="post-details-title" id="post-title">{{ post.title }}</h4> 
                     </div>
-
-                    <div class="col-3 d-flex">
+                    <div class="col-4 col-md-3 d-flex">
                         <!-- Update and delete options-->
                         {% if post.author == user %}
                         <div class="dropdown mx-3">
@@ -162,20 +161,28 @@
                         {% if post.is_in_wishlist %}
                         <span class="add-to-cart" data-item="{{ post.id }}" style="display: none;">
                             <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
-                            Save
+                            <span class="d-none d-md-inline-block">
+                                Save
+                            </span>
                         </span>
                         <span class="remove-cart-item" data-item="{{ post.id }}">
                             <i class="fa-solid fa-heart" data-item="{{ post.id }}"></i>
-                            Unsave
+                            <span class="d-none d-md-inline-block">
+                                Unsave
+                            </span>
                         </span>
                         {% elif user.is_authenticated %}
                         <span class="add-to-cart" data-item="{{ post.id }}">
                             <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
-                            Save
+                            <span class="d-none d-md-inline-block">
+                                Save
+                            </span>
                         </span>
                         <span class="remove-cart-item" data-item="{{ post.id }}" style="display: none;"> 
                             <i class="fa-solid fa-heart" data-item="{{ post.id }}"></i>
-                            Unsave
+                            <span class="d-none d-md-inline-block">
+                                Unsave
+                            </span>
                         </span>
                         {% else %}
                         <a class="text-decoration-none text-dark" href="{% url 'login' %}?next=/post/{{ post.id }}">
@@ -231,7 +238,6 @@
                     <hr>
                     <!-- Payment form -->
                     <form action="{% url 'reserve' post.id %}" method="get" class="mb-3" id="reserve-form" data-listing="{{ post.id }}">
-                        {% csrf_token %}
                         <div class="container bg-white rounded border">
                             <!-- Price -->
                             <div class="mb-3 d-flex align-items-center p-1">
@@ -361,8 +367,8 @@
             <div class="mb-3">
                 <h2>Comments</h2>
             </div>
-            {% if user.is_authenticated and has_reserved %}
-                <div class="p-3 container border">
+            {% if user.is_authenticated and has_reserved and not has_commented %}
+                <div class="p-3 container border" id="comment-form-container">
                     <div class="d-flex align-items-center">
                         <img src="{{ user.profile_pic.url }}" class="profile-pic">
                         <a class="mx-3 text-decoration-none" href="{% url 'profile' user %}">{{ user }}</a>
@@ -383,6 +389,7 @@
                     <hr>
                     <form action="{% url 'comment' post.id %}" method="post" id="comment-form" data-post="{{ post.id }}">
                         {% csrf_token %}
+                        <input type="hidden" name="rating">
                         <div class="mb-3">
                             <textarea name="comment" rows="3" placeholder="Comment here" class="form-control" id="comment-textarea"></textarea>
                         </div>

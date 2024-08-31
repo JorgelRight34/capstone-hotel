@@ -67,7 +67,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return HttpResponseRedirect(reverse('listings:index'))
+    return HttpResponseRedirect('/')
 
 
 def register_view(request):
@@ -110,13 +110,13 @@ def profile(request, username):
     # Get page
     page = request.GET.get('items_page')
     
-    posts = Paginator(user.listings.all().order_by('date'), 6)
+    """posts = Paginator(user.listings.all().order_by('date'), 6)
     try:
         posts = posts.page(page)
     except PageNotAnInteger:
         posts = posts.page(1)
     except EmptyPage:
-        posts = posts.page(posts.num_pages)
+        posts = posts.page(posts.num_pages)"""
 
 
     comments = Paginator(user.comments.all(), 3)
@@ -127,14 +127,12 @@ def profile(request, username):
     except EmptyPage:
         posts = comments.page(comments.num_pages)
 
-    # Check if post is in cart
+    """ # Check if post is in cart
     for post in posts:
-        post.is_in_wishlist = request.user.wishlist.is_in_wishlist(post)
+        post.is_in_wishlist = request.user.wishlist.is_in_wishlist(post)"""
 
     return render(request, "accounts/profile.html", {
         "profile_user": user,
-        "posts": posts,
-        "comments": comments
     })
 
 

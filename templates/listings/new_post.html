@@ -1,0 +1,215 @@
+{% extends '_base.html' %}
+
+{% load static %}
+
+{% block title %}{{ post.title }}{% endblock title %}
+
+{% block body %}
+<div class="container p-md-3" style="overflow-x: hidden;">
+    <form method="post" id="new-post-form">
+        {% csrf_token %}
+        <div class="bg-white row p-0 border rounded post-details">
+            <!-- Right Container -->
+            <div class="col-6 p-0">
+                <div id="image-inputs" class="carousel carousel-dark slide" data-bs-interval="false">
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#image-inputs" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    </div>
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                        <label class="container rounded d-flex align-items-center justify-content-center p-3 hover" style="height: 500px; object-fit: cover;">
+                            <input type="file" name="image" accept="image/*" class="d-none">
+                            <div class="new-listing-image ">
+                            <i class="fa-regular fa-image fs-1"></i>
+                            </div>
+                        </label>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#image-inputs" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#image-inputs" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                <!-- Amenities -->
+                <div class="mb-3">
+                    <hr>
+                    <h3 class="mb-3 mx-3">Amenities</h3>
+                    <div class="p-3">
+                        <div class="d-flex flex-wrap" id="ammenities" style="overflow: auto">
+                            <!-- Ammenities -->
+                        </div>
+                    </div>
+                </div> 
+            </div>
+
+            <!-- Second Container -->
+            <div class="col-6 p-3"> 
+                <!-- Info -->
+                <div id="info">
+                    <div class="row mb-3" id="post-details-header">
+                        <!-- Title -->
+                        <div>
+                            <label class="form-label" for="title">Title</label>
+                            <input class="form-control" id="new-post-form-title" name="title" required>
+                        </div>
+                    </div>
+                    <!-- Author Info -->
+                    <div class="mb-3">
+                        <div class="wallpaper p-3 d-flex align-items-center">
+                            <input type="hidden" value="{{ user.wallpaper.url }}" name="wallpaper">
+                            <img src="{{ user.profile_pic.url }}" class="profile-pic" id="profile-pic" style="height: 50px; width: 50px;" alt="profile pic">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <div class="mx-3 d-flex align-items-center bg-light border rounded p-2 shadow-sm h-50">
+                                    <a class="text-decoration-none" href="{% url 'profile' user %}">
+                                        <h4 id="username" class="text-dark">{{ user }}</h4>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label  class="form-label" for="description">Description</label>
+                        <textarea class="form-control" id="new-post-form-description" name="description" rows="3" required></textarea>
+                    </div>
+                    <!-- Guests, Bedrooms, Beds & Bathrooms -->
+                    <div class="mb-3 p-3">
+                        <div class="row mb-3">
+                            <!-- Bedrooms -->
+                            <input type="hidden" name="bedrooms" value="1" required>
+                            <!-- Label -->
+                            <div class="col-9">
+                                <h6>Bedrooms</h6>
+                            </div>
+                            <!-- Input Number -->
+                            <div class="col-3 d-flex align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="white-circle border shadow-sm remove-field" data-field="bedrooms">
+                                        <i class="fa-solid fa-minus" data-field="bedrooms"></i>
+                                    </div>
+                                    <span class="mx-3" id="bedrooms-number">
+                                        1
+                                    </span>
+                                    <div class="white-circle border shadow-sm add-field" data-field="bedrooms">
+                                        <i class="fa-solid fa-plus" data-field="bedrooms"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+
+                        <div class="row mb-3">
+                            <!-- Beds -->
+                            <input type="hidden" name="beds" value="1" required>
+                            <!-- Label -->
+                            <div class="col-9">
+                                <h6>Beds</h6>
+                            </div>
+                            <!-- Input Number -->
+                            <div class="col-3 d-flex align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="white-circle border shadow-sm remove-field" data-field="beds">
+                                        <i class="fa-solid fa-minus" data-field="beds"></i>
+                                    </div>
+                                    <span class="mx-3" id="beds-number">
+                                        1
+                                    </span>
+                                    <div class="white-circle border shadow-sm add-field" data-field="beds">
+                                        <i class="fa-solid fa-plus" data-field="beds"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+    
+                        <div class="row mb-3">
+                            <!-- Bathrooms -->
+                            <input type="hidden" name="bathrooms" value="1" required>
+                            <!-- Label -->
+                            <div class="col-9">
+                                <h6>Bathrooms</h6>
+                            </div>
+                            <!-- Input Number -->
+                            <div class="col-3 d-flex align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="white-circle border shadow-sm remove-field" data-field="bathrooms">
+                                        <i class="fa-solid fa-minus" data-field="bathrooms"></i>
+                                    </div>
+                                    <span class="mx-3" id="bathrooms-number">
+                                        1
+                                    </span>
+                                    <div class="white-circle border shadow-sm add-field" data-field="bathrooms">
+                                        <i class="fa-solid fa-plus" data-field="bathrooms"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+
+                        <div class="row mb-3">
+                            <!-- Guests -->
+                            <input type="hidden" name="guests" value="1" required>
+                            <!-- Label -->
+                            <div class="col-9">
+                                <h6>Guests</h6>
+                            </div>
+                            <!-- Input Number -->
+                            <div class="col-3 d-flex align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="white-circle border shadow-sm remove-field" data-field="guests">
+                                        <i class="fa-solid fa-minus" data-field="guests"></i>
+                                    </div>
+                                    <span class="mx-3" id="guests-number">
+                                        1
+                                    </span>
+                                    <div class="white-circle border shadow-sm add-field" data-field="guests">
+                                        <i class="fa-solid fa-plus" data-field="guests"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>   
+                    </div>
+                    </div>
+                    <div id="post-options">
+                        <hr>
+                        <!-- Payment form -->                
+                        <div class="container bg-white rounded border mb-5">
+                            <!-- Price -->
+                            <div class="mb-2 p-3">
+                                <label class="form-label" for="price">Price a night</label>
+                                <input type="number" class="form-control" id="new-post-form-price" name="price" required>
+                            </div>
+                            <div class="mb-3 p-3">
+                                <label class="form-label" for="price">Location</label>
+                                <input class="form-control" name="location" required>
+                            </div>
+                            <div class="mb-3 p-3">
+                                <label class="form-label" for="place-type">Place Type</label>
+                                <select class="form-control w-100" id="place-type" name="place-type">
+                                    <option value="room">Room</option>
+                                    <option value="house">Entire House</option>
+                                </select>
+                            </div>
+                            <div class="mb-3 p-3">
+                                <label class="form-label" for="select-category">Category</label>
+                                <select class="form-select" id="category-select" name="category" required>
+                                    <option>Select a category</option>
+                                </select>
+                            </div>
+                        </div>   
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-success">Publish</button>  
+                        </div>             
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<script src="{% static 'js/new_post.js' %}"></script>
+<script src="{% static 'js/wallpapers.js' %}"></script>
+{% endblock body %}

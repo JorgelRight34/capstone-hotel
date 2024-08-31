@@ -129,7 +129,7 @@ const validateReserveForm = async (event) => {
 
 const submitReserveForm = async (event) => {
     event.preventDefault();
-
+    alert('hey')
     if (!validateReserveForm()) {
         return;
     };
@@ -147,6 +147,29 @@ updateGuestText();
 if (reserveButton) {
     reserveButton.addEventListener('click', (event) => validateReserveForm(event));
 };
+
+let tomorrow = new Date();
+
+// Add one day
+tomorrow.setDate((new Date()).getDate() + 1);
+
+// Convert the date to YYYY-MM-DD format
+tomorrow = tomorrow.toISOString().split('T')[0];
+
+let afterTomorrow = new Date();
+
+// Add one day
+afterTomorrow.setDate((new Date()).getDate() + 2);
+
+// Convert the date to YYYY-MM-DD format
+afterTomorrow = afterTomorrow.toISOString().split('T')[0];
+
+if (!checkInInput.value) {
+    checkInInput.min = tomorrow;
+}
+if (!checkOutInput.value) {
+    checkOutInput.min = afterTomorrow;
+}
 guestsForm.onclick = showGuestsDropdownForm;
 addGuests.forEach(button => button.addEventListener('click', (event) => addGuest(event)));
 removeGuests.forEach(button => button.addEventListener('click', (event) => removeGuest(event)));

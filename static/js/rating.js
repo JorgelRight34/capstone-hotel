@@ -6,6 +6,7 @@ if (ratingStarsContainer) {
 const ratingForm = document.getElementById('rating-form');
 const ratingText = document.querySelector('#rating') ? parseFloat(document.querySelector('#rating').textContent) : false;
 let rating = 0;
+const url = window.location.href;
 
 
 const renderRatingStars = () => {
@@ -98,8 +99,8 @@ const unfillStars = (event) => {
 
 
 const rate = async () => {
-    ratingInput = ratingForm.querySelector('input[name="rating"]');
-    ratingInput.value = rating;
+    ratingInputs = Array.from(document.querySelectorAll('input[name="rating"]'));
+    ratingInputs.forEach(input => input.value = rating);
 
     const formData = new FormData(ratingForm);
     const response = await fetch(`/rate/${ratingStarsContainer.dataset.item}`, {method: 'POST', body: formData});
@@ -112,7 +113,7 @@ if (ratingStarsContainer) {
     stars.forEach(star => star.addEventListener('mousemove', (event) => fillStar(event)));
     stars.forEach(star => star.addEventListener('click', rate))
 };
-if (ratingText) {
+if (ratingText && url.includes('post')) {
     showCurrentRating();
 }
 

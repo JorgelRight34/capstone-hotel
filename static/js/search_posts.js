@@ -18,8 +18,9 @@ const selectOrderOption = document.querySelector('select[name="select-order"]');
 const appliedFiltersText = document.getElementById('applied-filters');
 let appliedFilters = 0;
 
-let page = 1;
-let order = 'date';
+let page = 0;
+let order = '-date';
+let second_order = '-date';
 let place_type = '';
 let min_price = 0
 let max_price = 2000;
@@ -54,12 +55,12 @@ const getQuery = () => {
 };
 
 
-const searchPosts = async (event, empty=false) => {
-    event.preventDefault();
+const searchPosts = async (empty=false) => {
 
     const response = await fetch(
         '/search-listings?' +
         `order_by=${order}&` +
+        `second_order=${second_order}&` + 
         `category=${category}&` +
         `page=${page + 1}&` +
         `q=${getQuery()}&` +
@@ -83,6 +84,8 @@ const searchPosts = async (event, empty=false) => {
         return;
     };
 
+    messagesContainer.innerHTML = ``;
+
     if (empty) {
         postsContainer.innerHTML = '';
     }
@@ -93,6 +96,7 @@ const searchPosts = async (event, empty=false) => {
 
     page++;
     const posts = await response.json();
+    console.log(posts);
 
     for (const post in posts) {
         postsContainer.innerHTML += posts[post];
@@ -103,11 +107,14 @@ const searchPosts = async (event, empty=false) => {
 };
 
 
-const orderPosts = async (event) => { 
+const orderPosts = async () => { 
     order = selectOrderOption.value;
+    if (order === 'rating') {
+        order = `-${selectOrderOption.value}`;
+        second_order = '-ratings'
+    }
     page = 0;
-    console.log("Searching posts---------")
-    searchPosts(event, empty=true);
+    searchPosts(empty=true);
 };
 
 
@@ -181,10 +188,10 @@ const changeRoomsAndBedsInput = (event) => {
 };
 
 
-const loadMorePosts = async (event) => {
+const loadMorePosts = async () => {
     if (Math.round(window.innerHeight + window.scrollY)  >= document.body.offsetHeight) {
         // Load more items when scrolled to the bottom
-        searchPosts(event);
+        searchPosts();
     };
 };
 
@@ -208,7 +215,7 @@ const advancedSearch = (event) => {
     check_out = advancedSearchForm.querySelector('#check-out').value;
     page = 0;
 
-    searchPosts(event, empty=true);
+    searchPosts(empty=true);
     updateAppliedFiltersText();
 };
 
@@ -229,24 +236,34 @@ const closeAdvancedSearchDialog = () => {
 
 
 const showCategoryPosts = (event) => {
-    const last_category = category;
-    const categoryHash = window.location.hash.replace('#', '')
-    category = categoryHash === 'all' ? '' : categoryHash;
-    if ((last_category !== category) || !category) {
-        page = 0;
-    };
-    console.log("Category--------------------")
     window.location.hash = event.target.dataset.category;
-    searchPosts(event, empty=true);
+    category = event.target.dataset.category;
+    category = category === 'all' ? '' : category;
+    page = 0;
+    searchPosts(empty=true);
 };
 
 
+const loadPostsAccordingToHash = () => {
+    category = window.location.hash.replace('#', '') ? window.location.hash.replace('#', '') : '';
+    searchPosts(empty=true);
+};
+
+
+const searchPostsBySearchBar = (event) => {
+    event.preventDefault();
+    page = 0;
+    searchPosts(empty=true);
+};
+
+
+loadPostsAccordingToHash();
 selectOrderOption.onchange = (event) => orderPosts(event);
 clearAdvancedSearchFormButton.onclick = clearAdvancedSearchForm;
 categoriesOptions.forEach(option => option.addEventListener('click', (event) => showCategoryPosts(event)));
 roomsAndBedsButtons.forEach(button => button.onclick = (event) => changeRoomsAndBedsInput(event));
 window.onscroll = loadMorePosts;
-postsSearchForm.addEventListener('submit', (event) => searchPosts(event));
+postsSearchForm.addEventListener('submit', (event) => searchPostsBySearchBar(event));
 advancedSearchButton.onclick = openAdvancedSearchDialog;
 advancedSearchForm.onsubmit = (event) => advancedSearch(event);
 closeAdvancedSearchDialogButton.onclick = closeAdvancedSearchDialog;

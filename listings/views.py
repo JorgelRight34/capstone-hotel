@@ -21,53 +21,8 @@ POSTS_PER_PAGE = 6
 
 # Create your views here.
 def index(request):
-    # Get requested page
-    page = request.GET.get('page')
-
-    # Paginator
-    posts = Paginator(Listing.objects.all(), POSTS_PER_PAGE)
-
-    try:
-        posts = posts.page(page)
-    except PageNotAnInteger:
-        posts = posts.page(1)
-    except EmptyPage:
-        posts = posts.page(posts.num_pages)
-
-    # Check if posts are in cart only if user is authenticated
-    if request.user.is_authenticated:
-        for post in posts:
-            if request.user.wishlist.is_in_wishlist(post.id):
-                post.is_in_wishlist = True
-    
-
-    categories = Category.objects.all()
-
-    # Categories pages contains lists of categories
-    categories_pages = []
-    categories_per_page = 4
-
-    start_index = 0
-    end_index = categories_per_page
-
-    for _ in range(len(categories)):
-        # Get page of categories
-        page = categories[start_index:end_index]
-        # If page is empty then break
-        if len(page) == 0:
-            break
-
-        categories_pages.append(page)
-
-        # Update start index and end index
-        start_index += categories_per_page
-        end_index += categories_per_page
-
-    categories = categories_pages
-
     return render(request, 'index.html', {
-        'posts': posts,
-        'categories': categories
+        'categories': Category.paginate_categories()
     })
 
 
@@ -83,6 +38,7 @@ def add_to_wishlist(request, listing):
     return JsonResponse(listing.serialize())
 
 
+@login_required
 def wishlist_json(request):
     return JsonResponse([listing.listing.serialize() for listing in request.user.wishlist.listings.all()], safe=False)
 
@@ -103,13 +59,15 @@ def categories(request):
 def comment(request, post):
     if request.method == 'POST':
         listing = get_object_or_404(Listing, pk=post)
+        has_commented = Comment.objects.filter(author=request.user, listing=listing)
 
         # Allow only buyers to comment
-        if not request.user.has_reserved(listing.id):
+        if not request.user.has_reserved(listing.id) or has_commented:
             return HttpResponse(status=405)
         
         # Create comment
-        comment = Comment(author=request.user, listing=listing, comment=request.POST['comment'])
+        print("rating", request.POST['rating'])
+        comment = Comment(author=request.user, listing=listing, comment=request.POST['comment'], rating=request.POST['rating'])
         comment.save()
 
         # Create notification
@@ -142,7 +100,8 @@ def delete_comment(request, comment):
 
     # Avoid others user to delete others users comments
     if request.user == comment.author:
-        comment.delete();
+        comment.delete()
+        comment.listing.set_rating(comment.rating)
         return HttpResponse(status=204)
     else: 
         return HttpResponse(status=500)
@@ -151,13 +110,10 @@ def delete_comment(request, comment):
 @login_required
 def new_post(request):
     if request.method == "POST":
-        try:
-            author, title, location, place_type = request.user, request.POST['title'], request.POST['location'], request.POST['place-type']
-            description, price, category = request.POST['description'], request.POST['price'], request.POST['category']
-            guests, bedrooms, beds, bathrooms = request.POST['guests'], request.POST['bedrooms'], request.POST['beds'], request.POST['bathrooms']
-        except:
-            return redirect('/#new_post')
-        
+        author, title, location, place_type = request.user, request.POST['title'], request.POST['location'], request.POST['place-type']
+        description, price, category = request.POST['description'], request.POST['price'], request.POST['category']
+        guests, bedrooms, beds, bathrooms = request.POST['guests'], request.POST['bedrooms'], request.POST['beds'], request.POST['bathrooms']
+    
         post = Listing()    
         category = get_object_or_404(Category, pk=category)
         post.author, post.title, post.description, post.price, post.category = author, title, description, price, category
@@ -204,7 +160,7 @@ def new_post(request):
 
         return HttpResponse(status=204)
 
-    return redirect("/#new_post")
+    return render(request, 'listings/new_post.html')
 
 
 def post_details(request, post):
@@ -240,19 +196,21 @@ def post_details(request, post):
         start_index, end_index = start_index + AMENITIES_PER_PAGE, end_index + AMENITIES_PER_PAGE
         amenities_sliced = amenities[start_index:end_index]
 
-    print(amenities_pages)
     # Get starting check in
     starting_check_in = ''
     if post.last_stay:
-        if post.last_stay.check_out < datetime.now():
+        if post.last_stay.check_out < datetime.now().date():
             starting_check_in = datetime.now().strftime('%Y-%m-%d')
         else:
             starting_check_in = post.last_stay.check_out.strftime('%Y-%m-%d')
+
+    has_commented = Comment.objects.filter(author=request.user, listing=post)
 
     return render(request, 'listings/post_details.html', {
         'post': post,
         'comments': comments,
         'stripe_key': settings.STRIPE_TEST_PUBLISHABLE_KEY,
+        'has_commented': has_commented,
         'has_reserved': has_reserved,
         'starting_check_in': starting_check_in,
         'amenities': amenities_pages
@@ -289,6 +247,7 @@ def search_listings(request):
     # Get all GET parameters
     q = request.GET.get('q')
     order = request.GET.get('order_by', 'date')
+    second_order = request.GET.get('second_order', 'date')
     wishlist = request.GET.get('wishlist')    # Contains username of wishlist's user
     min_price = request.GET.get('min_price') or 0
     max_price = request.GET.get('max_price') or 10000
@@ -340,7 +299,7 @@ def search_listings(request):
             Q(bedrooms__gte=bedrooms),
             Q(bathrooms__gte=bathrooms),
             **paginator_parameters
-        ).order_by(order)
+        ).order_by(order, second_order)
     else:
         # Unpack parameters 
         listings = Listing.objects.filter(
@@ -349,7 +308,7 @@ def search_listings(request):
             Q(bedrooms__gte=bedrooms),
             Q(bathrooms__gte=bathrooms),
             **paginator_parameters
-        ).order_by(order)
+        ).order_by(order, second_order)
 
     # If amenities only get the listings which have the provided amenities
     filtered_listings = []
@@ -393,7 +352,7 @@ def search_listings(request):
     if not listings:
         return HttpResponse(status=404)
     
-    return JsonResponse(Listing.render_posts_json(listings, request.user), safe=False)
+    return JsonResponse(Listing.render_posts_html(listings, request.user), safe=False)
 
 
 @login_required

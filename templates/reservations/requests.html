@@ -5,8 +5,8 @@
 {% block title %}Requests to Book{% endblock %}
 
 {% block body %}
-<div class="p-3">
-    <div class="container bg-white p-3">
+<div class="p-md-3">
+    <div class="container bg-white p-md-3">
         <!-- Nav -->
         <ul class="nav nav-tabs mb-3">
             <li class="nav-item">
@@ -33,7 +33,7 @@
                 </select>
             </div>
         </div>
-        <div id="requests" class="p-3">
+        <div id="requests" class="p-md-3">
             <div id="pending">
                 {% for request_to_book in pending_requests %}
                 <div class="mb-3" id="request-{{ request_to_book.id }}">

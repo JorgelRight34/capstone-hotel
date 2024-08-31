@@ -42,11 +42,40 @@ class Category(models.Model):
         return [category.serialize() for category in Category.objects.all()]
     
 
+    @staticmethod
+    def paginate_categories():
+        categories = Category.objects.all()
+
+        # Categories pages contains lists of categories
+        categories_pages = []
+        categories_per_page = 4
+
+        start_index = 0
+        end_index = categories_per_page
+
+        for _ in range(len(categories)):
+            # Get page of categories
+            page = categories[start_index:end_index]
+            # If page is empty then break
+            if len(page) == 0:
+                break
+
+            categories_pages.append(page)
+
+            # Update start index and end index
+            start_index += categories_per_page
+            end_index += categories_per_page
+
+        categories = categories_pages
+        return categories
+    
+
 class Comment(models.Model):
     author = models.ForeignKey('accounts.User', related_name='comments', on_delete=models.CASCADE, blank=False, null=False)
     listing = models.ForeignKey('Listing', related_name='comments', on_delete=models.CASCADE, blank=False, null=False)
     comment = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
+    rating = models.FloatField(default=0)
 
 
     def __str__(self):
@@ -125,7 +154,7 @@ class Listing(models.Model):
     
 
     def set_rating(self, rating):
-        # Avoid ratings greater than 5 and lower than 0
+        # Avoid ratings greater than 5 and lower than 0 
         if rating > 5 or rating < 0:
             raise ValueError("Ratings can't be greather than 5 nor lower than 0")
         
@@ -136,15 +165,15 @@ class Listing(models.Model):
             ratingSum += rating.rating
 
         # Add 1 to len(ratings) because current rating is not being counted
-        self.rating = ratingSum / (len(ratings) + 1) 
+        self.rating = round((ratingSum / (len(ratings) + 1)), 1)
         self.save()
 
     
     @staticmethod
-    def render_posts_json(posts, user):
+    def render_posts_html(posts, user):
         posts_json = []
         for post in posts:
-            if user.wishlist.is_in_wishlist(post):
+            if user.is_authenticated and user.wishlist.is_in_wishlist(post):
                 post.is_in_wishlist = True
             posts_json.append(render_to_string('listings/post.html', {'post': post}))
 

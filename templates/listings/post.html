@@ -1,13 +1,13 @@
 <div class="bg-white rounded border shadow-sm mb-3 p-0 post-widget listing">
     <div class="col p-0 post-image-col">
-        <div class="cart-buttons">
+        <div class="wishlist-buttons">
             <div class="white-circle shadow-sm">
                 {% if post.is_in_wishlist %}
-                    <i class="fa-regular fa-heart add-to-cart" data-item="{{ post.id }}" style="display: none;"></i>
-                    <i class="fa-solid fa-heart remove-cart-item" data-item="{{ post.id }}"></i>
+                    <i class="fa-regular fa-heart add-to-wishlist" data-item="{{ post.id }}" style="display: none;"></i>
+                    <i class="fa-solid fa-heart remove-wishlist-item" data-item="{{ post.id }}"></i>
                 {% else %}
-                    <i class="fa-regular fa-heart add-to-cart" data-item="{{ post.id }}"></i>
-                    <i class="fa-solid fa-heart remove-cart-item" data-item="{{ post.id }}" style="display: none;"></i>
+                    <i class="fa-regular fa-heart add-to-wishlist" data-item="{{ post.id }}"></i>
+                    <i class="fa-solid fa-heart remove-wishlist-item" data-item="{{ post.id }}" style="display: none;"></i>
                 {% endif %}
             </div>
         </div>
@@ -75,8 +75,8 @@
             <h6><b>U$</b> <b class="price">{{ post.price }}</b></h6>
         </div>
         <div class="mb-3 description">
-            {% if post.description|length >= 63 %}
-                {{ post.description|slice:":60" }}...
+            {% if post.description|length >= 100 %}
+                {{ post.description|slice:":100" }}...
             {% else %}
                 {{ post.description }}
             {% endif %}

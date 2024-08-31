@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block extended_navbar %}
-<div class="bg-white rounded p-3 mb-3 m-0 w-100 row">
+<div class="row bg-white rounded p-3 mb-3 m-0 w-100 shadow-sm">
     <!-- Categories -->
     <div class="col-md-8">
         <div class="categories-m">
@@ -17,14 +17,13 @@
                 </div>
                 <div class="col-md-6 col-sm-6">
                     <div class="carousel-inner">
-    
                         <div class="carousel-item active">
                             <div class="row d-flex justify-content-center">
-                                <a href="#all" class="category-link" data-category="all">
-                                    <div class="d-flex justify-content-center align-items-center" data-category="all">
-                                        <span class="fa-regular fa-compass" data-category="{{ category }}"></span>
+                                <a class="category-link" data-category="">
+                                    <div class="d-flex justify-content-center align-items-center" data-category="">
+                                        <span class="fa-regular fa-compass" data-category=""></span>
                                     </div>
-                                    <div class="d-flex justify-content-center align-items-center" data-category="all">
+                                    <div class="d-flex justify-content-center align-items-center" data-category="">
                                         All
                                     </div>      
                                 </a>
@@ -69,11 +68,11 @@
 
         <!-- Categories for mobile devices -->
         <div class="categories-sm mb-3">
-            <a href="#all" class="category-link" data-category="all">
-                <div class="d-flex justify-content-center align-items-center" data-category="all">
-                    <span class="fa-regular fa-compass" data-category="{{ category }}"></span>
+            <a href="" class="category-link" data-category="">
+                <div class="d-flex justify-content-center align-items-center" data-category="">
+                    <span class="fa-regular fa-compass" data-category=""></span>
                 </div>
-                <div class="d-flex justify-content-center align-items-center" data-category="all">
+                <div class="d-flex justify-content-center align-items-center" data-category="">
                     All
                 </div>      
             </a>
@@ -93,21 +92,24 @@
             <input type="hidden" name="current-category" id="current-category">
         </div>
     </div>
-    
-    <!-- Advanced Search -->
-    <div class="col-md-2">
-        <button class="container border rounded shadow-sm w-50 p-1 bg-white position-relative" id="advanced-search-button">
-            <i class="fa-solid fa-filter text-center mx-1"></i>Filters
+
+    <!-- Options -->
+    <div class="col-6 col-md-4 d-none d-md-flex">
+        <!-- Advanced Search -->
+        <button 
+            class="container border rounded shadow-sm w-25 p-1 bg-white position-relative d-flex align-items-center justify-content-center" 
+            id="advanced-search-button"
+        >
+            <span class="material-symbols-outlined">
+                tune
+            </span>
             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info d-none" id="applied-filters">
                 0
                 <span class="visually-hidden">Applied filters</span>
             </span>
         </button>
-    </div>
-        
-    <!-- Filters -->
-    <div class="col-md-2">
-        <div class="select-posts-order-container">
+        <!-- Filters -->      
+        <div class="select-posts-order-container shadow-sm ms-3">
             <select class="form-select" name="select-order">
                 <option>Order by</option>
                 <option value="price">Lesser price to greater price</option>
@@ -115,31 +117,27 @@
                 <option value="category">Category</option>
                 <option value="rating">Rating</option>
             </select>
-        </div>
+        </div>      
     </div>
 </div>
 {% endblock %}
 
 {% block body %}
-<div class="p-3">
-    <div class="container p-3 rounded">
+<div class="p-md-3">
+    <div class="container p-md-3 rounded">
         <div class="posts-container">
-            {% for post in posts %}
-                {% include 'listings/post.html' %}
-            {% empty %}
-                Posts
-            {% endfor %}
+            <!-- Listings -->
         </div>
     </div>
 
     <!-- Advanced Search Dialog -->
-    <dialog id="advanced-search-dialog" class="container border rounded bg-white w-75">
+    <dialog id="advanced-search-dialog" class="container border rounded bg-white w-75" style="overflow: hidden;">
         <div class="d-flex mb-3">
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" id="close-advanced-search-dialog"></button>
             <h3 class="mx-auto">Filters</h3>
         </div>
         <hr>
-        <div>
+        <div style="max-height: 80vh; min-height: 80vh; overflow-y: auto; overflow-x: hidden;">
             <!-- Advanced Search Form -->
             <form id="advanced-search-form">
                 <!-- Type Of Place-->

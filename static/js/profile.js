@@ -26,14 +26,13 @@ const currentURL = window.location.href;
 const url = new URL(currentURL);
 const username = url.pathname.split('/')[2];
 
-const wishlist = searchWishlistListingsInput ? 'true' : ''
+const userWishlist = searchWishlistListingsInput ? 'true' : ''
 
 
 const searchPosts = async (url) => {
     const response = await fetch(url);
 
     if (response.status === 404) {
-        loadMessage("<strong>No matches</strong> can't find what you are looking for.", 'danger');
         return;
     }
     posts_page += 1;
@@ -59,7 +58,12 @@ const orderPosts = async (order_value) => {
         category = category.value;
     };
     order = order_value;
-    searchPosts(`/search-listings?order_by=${order_value}&category=${category}&q=${(searchUserPostsInput || searchWishlistListingsInput).value}&page=${1}&wishlist=${wishlist}`);
+    searchPosts(
+        `/search-listings?order_by=${order_value}
+        &category=${category}&q=${(searchUserPostsInput || searchWishlistListingsInput).value}
+        &page=${1}
+        &wishlist=${userWishlist}`
+    );
 };
 
 
@@ -152,3 +156,5 @@ links.forEach(link => {
         });
     };
 });
+
+searchPosts(`/search-listings?author=${username}`);
