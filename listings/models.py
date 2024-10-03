@@ -103,7 +103,8 @@ class Comment(models.Model):
     @staticmethod
     def render_comments_json(comments, user):
         comments_json = {}
-        for comment in comments:
+        for comment in comments: 
+            print(comment.author)
             comments_json[f'{comment.id}'] = render_to_string('listings/comment.html', {'comment': comment, 'user': user})
         return comments_json
 
@@ -120,7 +121,6 @@ class Listing(models.Model):
     beds = models.IntegerField(default=1)
     bathrooms = models.IntegerField(default=1)
     category = models.ForeignKey(Category, related_name='listings', on_delete=models.CASCADE, blank=True, null=True)
-    quantity = models.IntegerField(default=1)
     type = models.CharField(max_length=5)
     stripe_id = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
@@ -150,6 +150,12 @@ class Listing(models.Model):
                 "month": self.date.month,
                 "year": self.date.year
             },
+            "guests": self.guests,
+            "bedrooms": self.bedrooms,
+            "bathrooms": self.bathrooms,
+            "beds": self.beds,
+            "category": self.category.category,
+            "type": self.type
         }
     
 
@@ -175,7 +181,7 @@ class Listing(models.Model):
         for post in posts:
             if user.is_authenticated and user.wishlist.is_in_wishlist(post):
                 post.is_in_wishlist = True
-            posts_json.append(render_to_string('listings/post.html', {'post': post}))
+            posts_json.append(render_to_string('listings/post.html', {'post': post, 'user': user}))
 
         return posts_json   
 

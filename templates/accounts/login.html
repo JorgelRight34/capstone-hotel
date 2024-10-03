@@ -3,9 +3,13 @@
 {% block title %}Log In{% endblock title %}
 
 {% block body %}
-<div class="container p-3">
-    <div class="container p-3 border rounded bg-white">
-        <h1>Log In</h1>
+<div class="container p-3 p-lg-5">
+    <div class="container w-50 p-3 border rounded bg-white">
+        <div>
+            <h2 class="text-center">Log In</h2>
+            <hr>
+        </div>
+        <h3 class="text-center mb-3">Welcome to Capstone</h3>
         <form action="{% url 'login' %}" method="post">
             {% csrf_token %}
             <div class="form-group mb-3">
@@ -16,7 +20,10 @@
                 <label class="form-label" for="password">Password</label>
                 <input class="form-control" id="password" type="password" name="password">
             </div>
-            <div class="form-group mb-3">
+            <div>
+                <div id="emailHelp" class="form-text">Don't have an account? <a href="{% url 'register' %}">Sign up</a> here.</div>
+            </div>
+            <div class="form-group d-flex justify-content-end mb-3">
                 <input type="submit" class="btn btn-primary">
             </div>
         </form>

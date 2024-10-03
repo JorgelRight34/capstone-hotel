@@ -96,9 +96,9 @@ const searchPosts = async (empty=false) => {
 
     page++;
     const posts = await response.json();
-    console.log(posts);
 
     for (const post in posts) {
+        console.log(posts);
         postsContainer.innerHTML += posts[post];
     };
 
@@ -111,7 +111,7 @@ const orderPosts = async () => {
     order = selectOrderOption.value;
     if (order === 'rating') {
         order = `-${selectOrderOption.value}`;
-        second_order = '-ratings'
+        second_order = '-rating'
     }
     page = 0;
     searchPosts(empty=true);
@@ -119,9 +119,9 @@ const orderPosts = async () => {
 
 
 const updateAppliedFiltersText = () => {
-    appliedFiltersText.textContent = '0';
+    let appliedFilters = 0;
     const updateAppliedFilters = () => {
-        appliedFiltersText.textContent = parseInt(appliedFiltersText.textContent) + 1;
+        appliedFilters += 1
     };
 
     advancedSearchForm.querySelector('input[name="place-type"]:checked').value !== '' ? updateAppliedFilters() : false;
@@ -138,7 +138,13 @@ const updateAppliedFiltersText = () => {
     advancedSearchForm.querySelector('#check-in').value ? updateAppliedFilters() : false;
     advancedSearchForm.querySelector('#check-out').value ? updateAppliedFilters() : false;
 
-    appliedFiltersText.classList.remove('d-none');
+    if (appliedFilters !== 0) {
+        appliedFiltersText.textContent = appliedFilters;
+        appliedFiltersText.classList.remove('d-none');
+    } else {
+        appliedFiltersText.classList.add('d-none');
+    }
+  
 };
 
 

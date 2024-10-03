@@ -26,6 +26,14 @@
               <div class="dropdown">
                 <i class="fa-solid fa-bell" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 </i>
+                <span 
+                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info" 
+                  id="notifications-number"
+                  style="display: none;"
+                >
+                    0
+                    <span class="visually-hidden">notifications</span>
+                </span>
                 <ul class="dropdown-menu" aria-labelledby="notifications" id="notifications-dropdown">
                 </ul>
               </div>
@@ -35,8 +43,8 @@
 
           <!-- Search Bar -->
           <div class="col-md-6 mx-auto mx-md-0 navbar-search-bar">
-            <form class="d-flex" id="posts-search-form">
-              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" id="posts-search-bar">
+            <form action="{% url 'index' %}" class="d-flex" id="posts-search-form">
+              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" id="posts-search-bar" name="q" value="{{ q }}">
               <button class="btn btn-outline-success" type="submit">Search</button>
             </form>
           </div>
@@ -62,9 +70,9 @@
                   </div>
                   <hr>
                   {% if user.wishlist.all.0.items.all|length > 0 %}
-                  <button id="clear-wishlist" class="btn btn-outline-danger">Clear</button>
+                  <button class="btn btn-outline-danger clear-wishlist">Clear</button>
                   {% else %}
-                  <button id="clear-wishlist" class="btn btn-outline-danger" style="display: none;">Clear</button>
+                  <button class="btn btn-outline-danger clear-wishlist" style="display: none;">Clear</button>
                   {% endif %}
                 </div>
               </div>
@@ -94,7 +102,6 @@
             <a class="nav-link" href="{% url 'login' %}">Log In</a>
             <a class="nav-link mx-3" href="{% url 'register' %}">Sign Up</a>
             {% endif %}
-
           </div>
         </div>
       </nav> 
@@ -104,8 +111,43 @@
 
           <div id="messages-container" class="p-3">
           </div>
-        {% block body %}
-        {% endblock body %}
+        <div class="block-body">
+          {% block body %}
+          {% endblock body %}
+        </div>
+        <div class="d-lg-none navbar-light bg-white w-100 border-top bottom-navbar">
+          <div class="row">
+            <!-- Listings -->
+            <div class="col nav-item d-flex justify-content-center p-3">
+              <a class="nav-link" href="{% url 'index' %}">
+                <i class="fa-solid fa-magnifying-glass fs-5"></i>
+              </a>
+            </div>
+            
+            <!-- Wishlist -->
+            <div class="col nav-item d-flex justify-content-center p-3">
+              <a class="nav-link" href="{% url 'wishlist' %}">
+                <i class="fa-regular fa-heart fs-5"></i>
+              </a>
+            </div>
+
+            {% if user.is_authenticated %}
+            <!-- Profile -->
+            <div class="col nav-item d-flex justify-content-center p-3">
+              <a class="nav-link" href="{% url 'profile' user %}">
+                <img src="{{ user.profile_pic.url }}" class="profile-pic mx-1" height="20px"> <span class="navbar-username">{{ user }}</span> 
+              </a>
+            </div>
+            {% endif %}
+
+            <!-- New post -->
+            <div class="col nav-item d-flex justify-content-center p-3">
+              <a class="nav-link" href="{% url 'new_post' %}">
+                <i class="fa-solid fa-plus fs-5"></i>
+              </a>
+            </div>
+          </div>
+        </div>
     </body>
 
     <script src="{% static 'js/posts.js' %}"></script>

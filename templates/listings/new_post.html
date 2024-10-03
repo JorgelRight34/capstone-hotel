@@ -2,15 +2,15 @@
 
 {% load static %}
 
-{% block title %}{{ post.title }}{% endblock title %}
+{% block title %}New Post{% endblock title %}
 
 {% block body %}
 <div class="container p-md-3" style="overflow-x: hidden;">
-    <form method="post" id="new-post-form">
+    <form action="{% url 'new_post' %}" method="post" id="new-post-form" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="bg-white row p-0 border rounded post-details">
             <!-- Right Container -->
-            <div class="col-6 p-0">
+            <div class="col-md-6 p-0">
                 <div id="image-inputs" class="carousel carousel-dark slide" data-bs-interval="false">
                     <div class="carousel-indicators">
                         <button type="button" data-bs-target="#image-inputs" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
@@ -47,7 +47,7 @@
             </div>
 
             <!-- Second Container -->
-            <div class="col-6 p-3"> 
+            <div class="col-md-6 p-3"> 
                 <!-- Info -->
                 <div id="info">
                     <div class="row mb-3" id="post-details-header">
@@ -59,7 +59,7 @@
                     </div>
                     <!-- Author Info -->
                     <div class="mb-3">
-                        <div class="wallpaper p-3 d-flex align-items-center">
+                        <div class="wallpaper p-3 d-flex align-items-center rounded">
                             <input type="hidden" value="{{ user.wallpaper.url }}" name="wallpaper">
                             <img src="{{ user.profile_pic.url }}" class="profile-pic" id="profile-pic" style="height: 50px; width: 50px;" alt="profile pic">
                             <div class="d-flex align-items-center justify-content-center">
@@ -82,11 +82,11 @@
                             <!-- Bedrooms -->
                             <input type="hidden" name="bedrooms" value="1" required>
                             <!-- Label -->
-                            <div class="col-9">
+                            <div class="col-8 col-md-9">
                                 <h6>Bedrooms</h6>
                             </div>
                             <!-- Input Number -->
-                            <div class="col-3 d-flex align-items-center">
+                            <div class="col-2 col-md-3 d-flex align-items-center">
                                 <div class="d-flex align-items-center">
                                     <div class="white-circle border shadow-sm remove-field" data-field="bedrooms">
                                         <i class="fa-solid fa-minus" data-field="bedrooms"></i>
@@ -106,11 +106,11 @@
                             <!-- Beds -->
                             <input type="hidden" name="beds" value="1" required>
                             <!-- Label -->
-                            <div class="col-9">
+                            <div class="col-8 col-md-9">
                                 <h6>Beds</h6>
                             </div>
                             <!-- Input Number -->
-                            <div class="col-3 d-flex align-items-center">
+                            <div class="col-2 col-md-3 d-flex align-items-center">
                                 <div class="d-flex align-items-center">
                                     <div class="white-circle border shadow-sm remove-field" data-field="beds">
                                         <i class="fa-solid fa-minus" data-field="beds"></i>
@@ -130,11 +130,11 @@
                             <!-- Bathrooms -->
                             <input type="hidden" name="bathrooms" value="1" required>
                             <!-- Label -->
-                            <div class="col-9">
+                            <div class="col-8 col-md-9">
                                 <h6>Bathrooms</h6>
                             </div>
                             <!-- Input Number -->
-                            <div class="col-3 d-flex align-items-center">
+                            <div class="col-2 col-md-3 d-flex align-items-center">
                                 <div class="d-flex align-items-center">
                                     <div class="white-circle border shadow-sm remove-field" data-field="bathrooms">
                                         <i class="fa-solid fa-minus" data-field="bathrooms"></i>
@@ -154,11 +154,11 @@
                             <!-- Guests -->
                             <input type="hidden" name="guests" value="1" required>
                             <!-- Label -->
-                            <div class="col-9">
+                            <div class="col-8 col-md-9">
                                 <h6>Guests</h6>
                             </div>
                             <!-- Input Number -->
-                            <div class="col-3 d-flex align-items-center">
+                            <div class="col-2 col-md-3 d-flex align-items-center">
                                 <div class="d-flex align-items-center">
                                     <div class="white-circle border shadow-sm remove-field" data-field="guests">
                                         <i class="fa-solid fa-minus" data-field="guests"></i>
@@ -180,7 +180,7 @@
                         <div class="container bg-white rounded border mb-5">
                             <!-- Price -->
                             <div class="mb-2 p-3">
-                                <label class="form-label" for="price">Price a night</label>
+                                <label class="form-label" for="price">Price a night (USD)</label>
                                 <input type="number" class="form-control" id="new-post-form-price" name="price" required>
                             </div>
                             <div class="mb-3 p-3">
@@ -197,7 +197,7 @@
                             <div class="mb-3 p-3">
                                 <label class="form-label" for="select-category">Category</label>
                                 <select class="form-select" id="category-select" name="category" required>
-                                    <option>Select a category</option>
+                                    <option value="" disabled selected>Select a category</option>
                                 </select>
                             </div>
                         </div>   
@@ -211,5 +211,6 @@
     </form>
 </div>
 <script src="{% static 'js/new_post.js' %}"></script>
+<script src="{% static 'js/add_fields.js' %}"></script>
 <script src="{% static 'js/wallpapers.js' %}"></script>
 {% endblock body %}

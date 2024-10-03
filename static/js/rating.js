@@ -6,7 +6,7 @@ if (ratingStarsContainer) {
 const ratingForm = document.getElementById('rating-form');
 const ratingText = document.querySelector('#rating') ? parseFloat(document.querySelector('#rating').textContent) : false;
 let rating = 0;
-const url = window.location.href;
+const locationHref = window.location.href;
 
 
 const renderRatingStars = () => {
@@ -18,7 +18,6 @@ const renderRatingStars = () => {
 
         let sub = rating;
         for (const star of ratingStars) {
-            console.log(sub);
             if (sub == 0) {
                 return;
             }
@@ -113,7 +112,7 @@ if (ratingStarsContainer) {
     stars.forEach(star => star.addEventListener('mousemove', (event) => fillStar(event)));
     stars.forEach(star => star.addEventListener('click', rate))
 };
-if (ratingText && url.includes('post')) {
+if (ratingText && locationHref.includes('post')) {
     showCurrentRating();
 }
 

@@ -1,3 +1,4 @@
+
 const sections = {
     '#about': document.getElementById('about'),
     '#posts' : document.getElementById('posts'),
@@ -15,6 +16,7 @@ const selectOrderOption = document.querySelector('select[name="select-order"]');
 const searchUserPostsInput = document.getElementById('search-user-posts');
 const searchWishlistListingsInput = document.getElementById('search-wishlist-listings');
 let posts = Array.from(postsContainer.querySelectorAll('.post-widget'));
+let hasCommentsFirstLoaded = false;
 
 let posts_page = 1;
 let comments_page = 1;
@@ -59,10 +61,7 @@ const orderPosts = async (order_value) => {
     };
     order = order_value;
     searchPosts(
-        `/search-listings?order_by=${order_value}
-        &category=${category}&q=${(searchUserPostsInput || searchWishlistListingsInput).value}
-        &page=${1}
-        &wishlist=${userWishlist}`
+        `/search-listings?order_by=${order_value}&category=${category}&q=${(searchUserPostsInput || searchWishlistListingsInput).value}&page=${1}&wishlist=${userWishlist}`
     );
 };
 
@@ -92,6 +91,28 @@ const changeSection = () => {
     sections[`#${section}`].classList.toggle('d-none');
 };
 
+const loadComments = async () => {
+    if (hasCommentsFirstLoaded) {
+        return
+    }
+    hasCommentsFirstLoaded = true;
+    const response = await fetch(`/user-comments/${username}?page=${comments_page}`);
+    const comments = await response.json();
+
+    console.log(comments_page)
+    console.log(comments.length);
+    console.log(Object.keys(comments).length === 0);
+    if (comments_page <= 1 && Object.keys(comments).length === 0) {
+        sections['#comments'].innerHTML = `No comments`;
+        return
+    }
+
+    comments_page++;
+
+    for (const comment in comments) {
+        sections['#comments'].insertAdjacentHTML('beforeend', comments[comment]);
+    };
+}
 
 const loadMoreUserPosts = async () => {
     if (Math.round(window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
@@ -101,7 +122,7 @@ const loadMoreUserPosts = async () => {
         };
 
         // Load more items when scrolled to the bottom
-        const response = await fetch(`/search-listings?author=${username}&q=${searchUserPostsInput.value}&page=${posts_page + 1}`);
+        const response = await fetch(`/search-listings?author=${username}&q=${searchUserPostsInput.value}&page=${posts_page}`);
 
         if (response.status === 404) {
             return;
@@ -139,6 +160,7 @@ const loadMoreUserComments = async () => {
 window.onscroll = loadMoreUserPosts;
 window.addEventListener('scroll', loadMoreUserComments);
 
+commentsLink?.addEventListener('click', loadComments);
 if (selectOrderOption) {
     selectOrderOption.addEventListener('change', () => orderPosts(selectOrderOption.value));
 };

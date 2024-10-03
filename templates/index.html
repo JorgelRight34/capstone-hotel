@@ -67,14 +67,14 @@
         </div>
 
         <!-- Categories for mobile devices -->
-        <div class="categories-sm mb-3">
-            <a href="" class="category-link" data-category="">
-                <div class="d-flex justify-content-center align-items-center" data-category="">
+        <div class="categories-sm mb-3 ">
+            <a href="#{{ category }}" class="category-link" data-category="{{ category }}">                               
+                <div class="d-flex justify-content-center align-items-center" data-category="{{ category }}">
                     <span class="fa-regular fa-compass" data-category=""></span>
                 </div>
-                <div class="d-flex justify-content-center align-items-center" data-category="">
-                    All
-                </div>      
+                <div class="d-flex justify-content-center align-items-center" data-category="{{ category }}">
+                    Everything
+                </div>                                  
             </a>
             {% for category in categories %}
             {% for category in category %}
@@ -88,9 +88,9 @@
             </a>
             {% endfor %}
             {% endfor %}
-            <!-- Indicates current category -->
-            <input type="hidden" name="current-category" id="current-category">
         </div>
+        <!-- Indicates current category -->
+        <input type="hidden" name="current-category" id="current-category">
     </div>
 
     <!-- Options -->
@@ -109,15 +109,13 @@
             </span>
         </button>
         <!-- Filters -->      
-        <div class="select-posts-order-container shadow-sm ms-3">
-            <select class="form-select" name="select-order">
-                <option>Order by</option>
-                <option value="price">Lesser price to greater price</option>
-                <option value="date">Date</option>
-                <option value="category">Category</option>
-                <option value="rating">Rating</option>
-            </select>
-        </div>      
+        <select class="select-posts-order-container shadow-sm w-50 ms-3 form-select" name="select-order">
+            <option value="">Order by</option>
+            <option value="price">Lesser price to greater price</option>
+            <option value="date">Date</option>
+            <option value="category">Category</option>
+            <option value="rating">Rating</option>
+        </select>            
     </div>
 </div>
 {% endblock %}
@@ -143,19 +141,21 @@
                 <!-- Type Of Place-->
                 <div class="mb-3">
                     <h4>Type of place</h4>
-                    <span class="form-text mb-3" id="place-type-text">
-                        Search rooms, entire homes, or any type of place
-                    </span>
+                    <div class="mb-2">
+                        <span class="form-text mb-3" id="place-type-text">
+                            Search rooms, entire homes, or any type of place
+                        </span>
+                    </div>
                     <div class="d-flex justify-content-center align-items-center">
-                        <label class="container border rounded p-3 d-flex justify-content-center place-type bg-dark text-light">
+                        <label class="container border rounded p-3 d-flex justify-content-center place-type bg-dark text-light cursor-pointer">
                             <input type="radio" value="" name="place-type" class="d-none place-type-input" checked>
                             Any
                         </label>
-                        <label class="container border rounded p-3 d-flex justify-content-center place-type bg-light">
+                        <label class="container border rounded p-3 d-flex justify-content-center place-type bg-light cursor-pointer">
                             <input type="radio" value="room" name="place-type" class="d-none place-type-input">
                             Rooms
                         </label>
-                        <label class="container border rounded p-3 d-flex justify-content-center place-type bg-light">
+                        <label class="container border rounded p-3 d-flex justify-content-center place-type bg-light cursor-pointer">
                             <input type="radio" value="house" name="place-type" class="d-none place-type-input">
                             Houses
                         </label>
@@ -166,13 +166,12 @@
                 <!-- Price Range -->
                 <div class="mb-3">
                     <h4>Price range</h4>
-                    <div class="form-text">
-                        
+                    <div class="mb-2">
+                        <span class="form-text">
+                            Nightly prices before fees and taxes
+                        </span>
                     </div>
-                    <span class="form-text mb-3">
-                        Nightly prices before fees and taxes
-                    </span>
-                    <Div class="row">
+                    <div class="row px-3">
                         <!-- Minimum Price -->
                         <div class="col-6">
                             <div class="form-floating">
@@ -362,40 +361,44 @@
                 <!-- Amenities -->
                 <div class="form-group mb-3">
                     <h4 class="mb-3">Amenities</h4>
-                    <input type="hidden" name="amenities">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="wifi" id="wifi">
-                        <label class="form-check-label" for="wifi">
-                          WiFi
-                        </label>
+                    <div class="px-3">
+                        <input type="hidden" name="amenities">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="wifi" id="wifi">
+                            <label class="form-check-label" for="wifi">
+                            WiFi
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="washer" id="washer">
+                            <label class="form-check-label" for="washer">
+                            Washer
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="air conditioning" id="air-conditioning">
+                            <label class="form-check-label" for="air-conditioning">
+                            Air Conditioning
+                            </label>
+                        </div>
+                        <div class="form-check d-none">
+                            <input class="form-check-input" type="checkbox" value="kitchen" id="kitchen">
+                            <label class="form-check-label" for="kitchen">
+                            Kitchen
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="dryer" id="dryer">
+                            <label class="form-check-label" for="dryer">
+                            Dryer
+                            </label>
+                        </div>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="washer" id="washer">
-                        <label class="form-check-label" for="washer">
-                          Washer
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="air conditioning" id="air-conditioning">
-                        <label class="form-check-label" for="air-conditioning">
-                         Air Conditioning
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="kitchen" id="kitchen">
-                        <label class="form-check-label" for="kitchen">
-                          Kitchen
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="dryer" id="dryer">
-                        <label class="form-check-label" for="dryer">
-                          Dryer
-                        </label>
+                    <div class="d-flex justify-content-end px-3">
+                        <button class="btn btn-outline-success me-3" type="submit">Apply</button>
+                        <button class="btn btn-outline-danger" type="button" id="clear-advanced-search-form">Clear</button>
                     </div>
                 </div>
-                <input class="btn btn-outline-success" type="submit">
-                <button class="btn btn-outline-danger" type="button" id="clear-advanced-search-form">Clear</button>
             </form>
         </div>
     </dialog>

@@ -110,22 +110,29 @@ def profile(request, username):
     # Get page
     page = request.GET.get('items_page')
     
-    """posts = Paginator(user.listings.all().order_by('date'), 6)
+    posts = Paginator(user.listings.all().order_by('date'), 6)
     try:
         posts = posts.page(page)
     except PageNotAnInteger:
         posts = posts.page(1)
     except EmptyPage:
-        posts = posts.page(posts.num_pages)"""
+        posts = posts.page(posts.num_pages)
 
+    comments = []
+    for post in posts:
+        if post_comments := post.comments.all():
+            comments.append(post_comments)
 
-    comments = Paginator(user.comments.all(), 3)
+    for comment in comments:
+        print(comment)
+
+    comments = Paginator(comments, 10)
     try:
         comments = comments.page(page)
     except PageNotAnInteger:
         comments = comments.page(1)
     except EmptyPage:
-        posts = comments.page(comments.num_pages)
+        comments = comments.page(comments.num_pages)
 
     """ # Check if post is in cart
     for post in posts:

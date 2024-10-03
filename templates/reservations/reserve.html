@@ -136,7 +136,7 @@
                     <script src="https://checkout.stripe.com/checkout.js" class="stripe-button" id="reserve-button"
                     data-key="{{ stripe_key }}"
                     data-description="{{ listing.title }}"
-                    data-amount="{{ listing.price }}"
+                    data-amount="{{ stripe_price }}"
                     data-label = "Reserve"
                     data-locale="auto">
                     </script>

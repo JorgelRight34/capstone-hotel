@@ -5,12 +5,14 @@
 {% block title %}{{ profile_user }}{% endblock title %}
 
 {% block body %}
-<div class="container p-3">
+<div class="container p-0 p-lg-3">
     <input type="hidden" name="profile-user" id="profile-user" value="{{ profile_user }}">
     <div class="container bg-white border rounded p-0">
         <!-- Wallpaper -->
-        <div class="wallpaper p-3 d-flex">
+        <div class="wallpaper p-3 d-flex" style="background-size: cover;">
+            {% if profile_user.wallpaper %}
             <input type="hidden" value="{{ profile_user.wallpaper.url }}" name="wallpaper">
+            {% endif %}
             <img src="{{ profile_user.profile_pic.url }}" class="profile-pic" id="profile-pic" style="height: 100px; width: 100px;" alt="profile pic">
             <div class="d-flex align-items-center justify-content-center">
                 <div class="mx-3 d-flex align-items-center bg-light border rounded p-3 shadow-sm h-50">
@@ -30,20 +32,23 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#comments" id="comments-link">Comments</a>
                 </li>
+                {% if user == profile_user %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'edit_profile' %}" tabindex="-1" aria-disabled="true">Edit Profile</a>
                 </li>
+                {% endif %}
             </ul>
             <div id="about" class="p-3">
-                <div class="mb-3">
-                    <span class="text-muted">Location: </span><b>{{ profile_user.location }}</b>
-                </div>
                 <div class="mb-3">
                     <span class="text-muted">User since: </span><b><i class="fa-regular fa-calendar"></i> {{ profile_user.date_joined }}</b>
                 </div>
                 <div class="mb-3">
                     <span class="text-muted">Username: </span><b>{{ profile_user }}</b>
                 </div>
+                <div class="mb-3"></div>
+                    <span class="text-muted">Listings: </span><b>{{ profile_user.listings.all|length }}</b>
+                </div>
+                
             </div>
             <div id="posts" class="p-3 d-none">
                 <div class="row mb-3 search-posts-options">
@@ -70,18 +75,13 @@
                 </div>
             </div>
             <div id="comments" class="p-3 d-none">
-                {% for comment in comments %}
-                    {% include 'listings/comment.html' %}
-                {% empty %}
-                    No comments
-                {% endfor %}
             </div>
         </div>
     </div>
 </div>
 
 <script src="{% static 'js/wallpapers.js' %}"></script>
+<script src="{% static 'js/rating.js' %}"></script>
 <script src="{% static 'js/profile.js' %}"></script>
 <script src="{% static 'js/comments.js' %}"></script>
-<script src="{% static 'js/rating.js' %}"></script>
 {% endblock body %}

@@ -56,7 +56,6 @@ const addGuest = (event) => {
     const guestsType = event.target.dataset.guestsType;
     const guestsNumber = reserveForm.querySelector(`#${guestsType}-number`);
     if (totalGuests + 1 > maxGuests) {
-        console.log("total reached");
         return;
     }
 
@@ -111,14 +110,24 @@ const validateReserveForm = async (event) => {
     const checkOut = new Date(checkOutInput.value);
     const currentDate = new Date();
 
-    // Avoid checking in after checkout
-    if (checkIn >= checkOut) {
+    // Avoid checking in after or at the same time of checkout
+    console.log(checkIn)
+    console.log(checkOut)
+    if (checkIn == checkOut) {
+        loadMessage("<b>Invalid stay</b> check in date can't be on the same day of check out.", 'danger');
+        return false;
+    }
+
+    if (checkIn > checkOut) {
         loadMessage("<b>Invalid stay</b> check in date can't be later than check out.", 'danger');
         return false;
     }
 
     // Avoid checking in or checking out before today
     if (checkIn <= currentDate || checkOut <= currentDate) {
+        console.log(checkIn, currentDate)
+        console.log(checkIn <= currentDate)
+        console.log(checkOut <= currentDate)
         loadMessage("<b>Invalid stay</b> check in can't be in the past nor the present neither check out.", 'danger')
         return false;
     }

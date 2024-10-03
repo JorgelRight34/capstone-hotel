@@ -14,34 +14,6 @@ const imageInputsCarousel = newPostForm.querySelector('#image-inputs');
 const imageInputsCarouselInner = imageInputsCarousel.querySelector('.carousel-inner');
 const imageInputsCarouselIndicators = imageInputsCarousel.querySelector('.carousel-indicators');
 
-const addFieldButtons = Array.from(newPostForm.querySelectorAll('.add-field'));
-const removeFieldButtons = Array.from(newPostForm.querySelectorAll('.remove-field'));
-
-
-const addField = (event) => {
-    const field = event.target.dataset.field;
-    const number = document.getElementById(`${field}-number`);
-    const numberInput = document.querySelector(`input[name="${field}"]`)
-    const sum = parseFloat(number.textContent) + 1;
-
-    number.textContent = sum;
-    numberInput.value = sum;
-};
-
-
-const removeField = (event) => {
-    const field = event.target.dataset.field;
-    const number = document.getElementById(`${field}-number`);
-    const numberInput = document.querySelector(`input[name="${field}"]`)
-    const sub = parseFloat(number.textContent) - 1;
-
-    if (sub < 0) {
-        return;
-    }
-
-    number.textContent = sub;
-    numberInput.value = sub;
-};
 
 const fillNewPostRadioButton = (event) => {
     const button = event.target.parentNode;
@@ -112,7 +84,7 @@ const renderAmenities = async () => {
     for (const amenitie of amenities) {
         const html = `
             <label class="container border rounded shadow-sm p-3 mx-3 mb-3 amenitie w-25">
-                <input type="hidden" id="${amenitie.id}" name="amenitie" value="${amenitie.id}">
+                <input type="checkbox" class="d-none" id="${amenitie.id}" name="amenitie" value="${amenitie.id}">
                 <div>
                     <div class="d-flex align-items-center justify-content-center mb-1">
                         <i class="${amenitie.icon}"></i>
@@ -162,10 +134,7 @@ const submitNewPostForm = async (event) => {
     newPostForm.close();
 };
 
-addFieldButtons.forEach(button => button.addEventListener('click', (event) => addField(event)));
-removeFieldButtons.forEach(button => button.addEventListener('click', (event) => removeField(event)));
-imageInputs.forEach(input => input.addEventListener('change', (event) => uploadListingImage(event)));
-newPostForm.addEventListener('submit', (event) => submitNewPostForm(event));
+imageInputs.forEach(input => input.addEventListener('change', (event) => uploadListingImage(event)));;
 
 populateCategoryOptions();
 renderAmenities();

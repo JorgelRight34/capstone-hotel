@@ -64,7 +64,7 @@
                 </div>
             </div>   
             <!-- Amenities -->
-            <div class="mb-3">
+            <div class="mb-3" id="post-amenities">
                 <hr>
                 <h3 class="mb-3 mx-3">Amenities</h3>
                 <div class="p-3">
@@ -72,6 +72,7 @@
                     <div class="row mb-3">
                         {% for amenitie in amenities_list %}
                         <div class="col-4 d-flex align-items-center justify-content-center">
+                            <input type="hidden" name="post-amenitie" value="{{ amenitie.id }}">
                             <div class="container border rounded shadow-sm p-3 mx-3 amenitie">
                                 <div class="d-flex justify-content-center mx-auto mb-1">
                                     <i class="{{ amenitie.icon }} mx-auto"></i>
@@ -86,47 +87,186 @@
                     {% endfor %}
                 </div>
             </div> 
+            <!-- Update Amenities -->
+            <div class="mb-3" style="display: none;" id="update-post-ammenities-form">
+                <h3 class="mb-3 mx-3">Amenities</h3>
+                <div class="p-3">
+                    <div class="d-flex flex-wrap" id="update-post-ammenities" style="overflow: auto">
+                        <!-- Update Ammenities -->
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Second Container -->
         <div class="col-sm p-3">
             {% if user.is_authenticated %}
             <!-- Update Form -->
+            <!-- Info -->
             <form action="{% url 'update_post' %}" method="post" id="update-post-form" style="display: none;">
                 {% csrf_token %}
-                <div class="mb-3" id="post-details-header">
-                    <span>
-                        <input class="form-control title" name="title" value="{{ post.title }}"></h1> 
-                    </span>
+                <input type="hidden" name="post" value="{{ post.id }}">
+                <div class="row mb-3" id="post-details-header">
+                    <!-- Title -->
+                    <div>
+                        <label class="form-label" for="title">Title</label>
+                        <input class="form-control" id="new-post-form-title" name="title" value="{{ post.title }}" required>
+                    </div>
                 </div>
+                <!-- Author Info -->
                 <div class="mb-3">
                     <div class="wallpaper p-3 d-flex align-items-center">
+                        {% if post.author.wallpaper %}
                         <input type="hidden" value="{{ post.author.wallpaper.url }}" name="wallpaper">
                         <img src="{{ post.author.profile_pic.url }}" class="profile-pic" id="profile-pic" style="height: 50px; width: 50px;" alt="profile pic">
+                        {% endif %}
                         <div class="d-flex align-items-center justify-content-center">
                             <div class="mx-3 d-flex align-items-center bg-light border rounded p-2 shadow-sm h-50">
-                                <a class="text-decoration-none" href="{% url 'profile' post.author %}">
-                                    <h4 id="username" class="text-dark">{{ post.author }}</h4>
+                                <a class="text-decoration-none" href="{% url 'profile' user %}">
+                                    <h4 id="username" class="text-dark">{{ user }}</h4>
                                 </a>
                             </div>
                         </div>
                     </div>
                 </div>
+                <!-- Description -->
                 <div class="mb-3">
-                    <h2>US $</h2><input class="form-control price" name="price" type="number" value="{{ post.price }}"/>
+                    <label  class="form-label" for="description">Description</label>
+                    <textarea class="form-control" id="new-post-form-description" name="description" rows="3" required>{{ post.description }}</textarea>
                 </div>
-                <div class="mb-3">
-                    <textarea class="form-control description" name="description">{{ post.description }}</textarea>
+                <!-- Guests, Bedrooms, Beds & Bathrooms -->
+                <div class="mb-3 p-3">
+                    <div class="row mb-3">
+                        <!-- Bedrooms -->
+                        <input type="hidden" name="bedrooms" value="1" required>
+                        <!-- Label -->
+                        <div class="col-8 col-md-9">
+                            <h6>Bedrooms</h6>
+                        </div>
+                        <!-- Input Number -->
+                        <div class="col-2 col-md-3 d-flex align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="white-circle border shadow-sm remove-field" data-field="bedrooms">
+                                    <i class="fa-solid fa-minus" data-field="bedrooms"></i>
+                                </div>
+                                <span class="mx-3" id="bedrooms-number">
+                                    {{ post.bedrooms }}
+                                </span>
+                                <div class="white-circle border shadow-sm add-field" data-field="bedrooms">
+                                    <i class="fa-solid fa-plus" data-field="bedrooms"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+
+                    <div class="row mb-3">
+                        <!-- Beds -->
+                        <input type="hidden" name="beds" value="1" required>
+                        <!-- Label -->
+                        <div class="col-8 col-md-9">
+                            <h6>Beds</h6>
+                        </div>
+                        <!-- Input Number -->
+                        <div class="col-2 col-md-3 d-flex align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="white-circle border shadow-sm remove-field" data-field="beds">
+                                    <i class="fa-solid fa-minus" data-field="beds"></i>
+                                </div>
+                                <span class="mx-3" id="beds-number">
+                                    {{ post.beds }}
+                                </span>
+                                <div class="white-circle border shadow-sm add-field" data-field="beds">
+                                    <i class="fa-solid fa-plus" data-field="beds"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+
+                    <div class="row mb-3">
+                        <!-- Bathrooms -->
+                        <input type="hidden" name="bathrooms" value="1" required>
+                        <!-- Label -->
+                        <div class="col-8 col-md-9">
+                            <h6>Bathrooms</h6>
+                        </div>
+                        <!-- Input Number -->
+                        <div class="col-2 col-md-3 d-flex align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="white-circle border shadow-sm remove-field" data-field="bathrooms">
+                                    <i class="fa-solid fa-minus" data-field="bathrooms"></i>
+                                </div>
+                                <span class="mx-3" id="bathrooms-number">
+                                    {{ post.bathrooms }}
+                                </span>
+                                <div class="white-circle border shadow-sm add-field" data-field="bathrooms">
+                                    <i class="fa-solid fa-plus" data-field="bathrooms"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+
+                    <div class="row mb-3">
+                        <!-- Guests -->
+                        <input type="hidden" name="guests" value="1" required>
+                        <!-- Label -->
+                        <div class="col-8 col-md-9">
+                            <h6>Guests</h6>
+                        </div>
+                        <!-- Input Number -->
+                        <div class="col-2 col-md-3 d-flex align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="white-circle border shadow-sm remove-field" data-field="guests">
+                                    <i class="fa-solid fa-minus" data-field="guests"></i>
+                                </div>
+                                <span class="mx-3" id="guests-number">
+                                    {{ post.guests }}
+                                </span>
+                                <div class="white-circle border shadow-sm add-field" data-field="guests">
+                                    <i class="fa-solid fa-plus" data-field="guests"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>   
                 </div>
                 <div id="post-options">
-                    <input type="submit" class="btn btn-outline-success"/>
-                    <button class="btn btn-outline-danger" id="cancel-update-post-form">Cancel</button>
+                    <hr>
+                    <!-- Payment -->                
+                    <div class="container bg-white rounded border mb-5">
+                        <!-- Price -->
+                        <div class="mb-2 p-3">
+                            <label class="form-label" for="price">Price a night</label>
+                            <input type="number" class="form-control" id="new-post-form-price" name="price" value="{{ post.price }}" required>
+                        </div>
+                        <div class="mb-3 p-3">
+                            <label class="form-label" for="price">Location</label>
+                            <input class="form-control" name="location" value="{{ post.location }}" required>
+                        </div>
+                        <div class="mb-3 p-3">
+                            <label class="form-label" for="place-type">Place Type</label>
+                            <select class="form-control w-100" id="place-type" name="place-type" value="{{ post.type }}">
+                                <option value="room">Room</option>
+                                <option value="house">Entire House</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 p-3">
+                            <label class="form-label" for="select-category">Category</label>
+                            <select class="form-select" id="category-select" name="category" value="{{ post.category }}" required>
+                                <option value="" disabled selected>Select a category</option>
+                            </select>
+                        </div>
+                    </div>   
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-danger me-3" id="cancel-update-post-form">Cancel</button>
+                        <button type="submit" class="btn btn-success" id="">Edit</button>  
+                    </div>             
                 </div>
-                <input type="hidden" name="post" value="{{ post.id }}"/>
             </form>
             {% endif %}
             <!-- Update Form -->
-    
+
             <!-- Info -->
             <div id="info">
                 <div class="row mb-3" id="post-details-header">
@@ -137,7 +277,7 @@
                     <div class="col-4 col-md-3 d-flex">
                         <!-- Update and delete options-->
                         {% if post.author == user %}
-                        <div class="dropdown mx-3">
+                        <div class="dropdown ms-auto me-3">
                             <div class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16">
                                     <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
@@ -158,29 +298,30 @@
                         </div>
                         {% endif %}
                         <!-- Wishlist -->
+                        {% if user != post.author %}
                         {% if post.is_in_wishlist %}
-                        <span class="add-to-cart" data-item="{{ post.id }}" style="display: none;">
+                        <span class="add-to-wishlist" data-item="{{ post.id }}" style="display: none;">
                             <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
-                            <span class="d-none d-md-inline-block">
+                            <span class="d-md-inline-block" data-item="{{ post.id }}">
                                 Save
                             </span>
                         </span>
-                        <span class="remove-cart-item" data-item="{{ post.id }}">
+                        <span class="remove-wishlist-item" data-item="{{ post.id }}">
                             <i class="fa-solid fa-heart" data-item="{{ post.id }}"></i>
-                            <span class="d-none d-md-inline-block">
+                            <span class="d-md-inline-block" data-item="{{ post.id }}">
                                 Unsave
                             </span>
                         </span>
                         {% elif user.is_authenticated %}
-                        <span class="add-to-cart" data-item="{{ post.id }}">
+                        <span class="add-to-wishlist hover" data-item="{{ post.id }}">
                             <i class="fa-regular fa-heart" data-item="{{ post.id }}"></i>
-                            <span class="d-none d-md-inline-block">
+                            <span class="d-md-inline-block" data-item="{{ post.id }}">
                                 Save
                             </span>
                         </span>
-                        <span class="remove-cart-item" data-item="{{ post.id }}" style="display: none;"> 
+                        <span class="remove-wishlist-item" data-item="{{ post.id }}" style="display: none;"> 
                             <i class="fa-solid fa-heart" data-item="{{ post.id }}"></i>
-                            <span class="d-none d-md-inline-block">
+                            <span class="d-md-inline-block" data-item="{{ post.id }}">
                                 Unsave
                             </span>
                         </span>
@@ -194,12 +335,13 @@
                             Unsave
                         </a>
                         {% endif %}
+                        {% endif %}
                     </div>
         
                 </div>
                 <!-- Author Info -->
                 <div class="mb-3">
-                    <div class="wallpaper p-3 d-flex align-items-center">
+                    <div class="wallpaper p-3 d-flex align-items-center rounded">
                         <input type="hidden" value="{{ post.author.wallpaper.url }}" name="wallpaper">
                         <img src="{{ post.author.profile_pic.url }}" class="profile-pic" id="profile-pic" style="height: 50px; width: 50px;" alt="profile pic">
                         <div class="d-flex align-items-center justify-content-center">
@@ -217,20 +359,20 @@
                 </div>
                 <!-- Guests, Bedrooms, Beds & Bathrooms -->
                 <div class="mb-3 p-3">
-                    <div class="d-flex">
-                        <div class="container border rounded shadow-sm d-flex align-items-center mb-3 mx-3 p-3">
-                            <i class="fa-solid fa-users"></i><span class="mx-3">Guests</span><b>{{ post.guests }}</b>
+                    <div class="d-flex flex-column flex-md-row">
+                        <div class="container border rounded shadow-sm d-flex align-items-center mb-3 me-md-3 p-3">
+                            <i class="fa-solid fa-users"></i><span class="mx-3">Guests</span><b id="post-guests">{{ post.guests }}</b>
                         </div>
-                        <div class="container border rounded  shadow-sm align-items-center mb-3 mx-3 p-3">
-                            <i class="fa-solid fa-door-closed"></i><span class="mx-3">Bedrooms</span><b>{{ post.bedrooms }}</b>
+                        <div class="container border rounded  shadow-sm align-items-center mb-3 me-md-3 p-3">
+                            <i class="fa-solid fa-door-closed"></i><span class="mx-3">Bedrooms</span><b id="post-bedrooms">{{ post.bedrooms }}</b>
                         </div>
                     </div>
-                    <div class="d-flex">
-                        <div class="container border rounded d-flex shadow-sm align-items-center mb-3 mx-3 p-3">
-                            <i class="fa-solid fa-bed mx-1"></i><span class="mx-3">Beds</span><b>{{ post.beds }}</b>
+                    <div class="d-flex flex-column flex-md-row">
+                        <div class="container border rounded d-flex shadow-sm align-items-center mb-3 me-md-3 p-3">
+                            <i class="fa-solid fa-bed mx-1"></i><span class="mx-3">Beds</span><b id="post-beds">{{ post.beds }}</b>
                         </div>
-                        <div class="container border rounded d-flex shadow-sm align-items-center mb-3 mx-3 p-3">
-                            <i class="fa-solid fa-toilet mx-1"></i><span class="mx-3">Bathrooms</span><b>{{ post.bathrooms }}</b>
+                        <div class="container border rounded d-flex shadow-sm align-items-center mb-3 me-md-3 p-3">
+                            <i class="fa-solid fa-toilet mx-1"></i><span class="mx-3">Bathrooms</span><b id="post-bathrooms">{{ post.bathrooms }}</b>
                         </div>
                     </div>
                 </div>
@@ -275,12 +417,12 @@
                                                 <div class="row">
                                                     <input type="hidden" name="adults" required>
                                                     <!-- Label -->
-                                                    <div class="col-9">
+                                                    <div class="col-8 col-md-9">
                                                         <h6>Adults</h6>
                                                         <span class="text-muted">Age 13+</span>
                                                     </div>
                                                     <!-- Input Number -->
-                                                    <div class="col-3 d-flex align-items-center">
+                                                    <div class="col-2 col-md-3 d-flex align-items-center">
                                                         <div class="d-flex align-items-center">
                                                             <div class="white-circle border shadow-sm remove-guests" data-guests-type="adults">
                                                                 <i class="fa-solid fa-minus" data-guests-type="adults"></i>
@@ -302,12 +444,12 @@
                                                 <div class="row">
                                                     <input type="hidden" name="children">
                                                     <!-- Label -->
-                                                    <div class="col-9">
+                                                    <div class="col-8 col-md-9">
                                                         <h6>Children</h6>
                                                         <span class="text-muted">Ages 2-12</span>
                                                     </div>
                                                     <!-- Input Number -->
-                                                    <div class="col-3 d-flex align-items-center">
+                                                    <div class="col-2 col-md-3 d-flex align-items-center">
                                                         <div class="d-flex align-items-center">
                                                             <div class="white-circle border shadow-sm remove-guests" data-guests-type="children">
                                                                 <i class="fa-solid fa-minus" data-guests-type="children"></i>
@@ -329,12 +471,12 @@
                                                 <div class="row">
                                                     <input type="hidden" name="infants">
                                                     <!-- Label -->
-                                                    <div class="col-9">
+                                                    <div class="col-8 col-md-9">
                                                         <h6>Infants</h6>
                                                         <span class="text-muted">Under 2</span>
                                                     </div>
                                                     <!-- Input Number -->
-                                                    <div class="col-3 d-flex align-items-center">
+                                                    <div class="col-2 col-md-3 d-flex align-items-center">
                                                         <div class="d-flex align-items-center">
                                                             <div class="white-circle border shadow-sm remove-guests" data-guests-type="infants">
                                                                 <i class="fa-solid fa-minus" data-guests-type="infants"></i>
@@ -381,7 +523,7 @@
                                 <i class="fa-regular fa-star mx-1 fs-6" id="5"></i>
                                 <form class="d-none" method="post" id="rating-form">
                                     {% csrf_token %}
-                                    <input type="hidden" name="rating" value=""/>
+                                    <input type="hidden" name="rating" value="0"/>
                                 </form>
                             {% endif %}
                         </div>
@@ -409,4 +551,5 @@
 <script src="{% static 'js/rating.js' %}"></script>
 <script src="{% static 'js/wallpapers.js' %}"></script>
 <script src="{% static 'js/reserve.js' %}"></script>
+<script src="{% static 'js/add_fields.js' %}"></script>
 {% endblock %}

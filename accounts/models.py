@@ -9,10 +9,8 @@ from reservations.models import Stay
 
 # Create your models here.
 class User(AbstractUser):
-    profile_pic = models.ImageField(upload_to="profile_pics/", default="profile_pics/default.jpg")
+    profile_pic = models.ImageField(upload_to="profile_pics/", default="profile_pics/default_profile_pic.jpg")
     wallpaper = models.ImageField(upload_to="wallpapers/", blank=True, null=True)
-    location = models.CharField(max_length=255)
-
 
     def __str__(self):
         return self.username
@@ -32,8 +30,61 @@ class User(AbstractUser):
 
     @property
     def notifications(self):
-        notifications = [n.serialize() for n in self.request_to_book_notifications.all()] + [n.serialize() for n in self.comment_notifications.all()]
-        return notifications
+        print([n.serialize() for n in self.accepted_request_sent_notifications.all()])
+        return (
+            [n.serialize() for n in self.request_to_book_received_notifications.all()] + 
+            [n.serialize() for n in self.comment_received_notifications.all()] +
+            [n.serialize() for n in self.accepted_request_sent_notifications.all()] +
+            [n.serialize() for n in self.declined_request_sent_notifications.all()]
+        )
+
+
+class AcceptedRequestNotification(models.Model):
+    notificator = models.ForeignKey(User, related_name='accepted_request_notifications', blank=False, null=False, on_delete=models.CASCADE)
+    notificated = models.ForeignKey(User, related_name='accepted_request_sent_notifications', blank=False, null=False, on_delete=models.CASCADE)
+    notification = models.ForeignKey('reservations.Stay', related_name='listing_accepted_request_notifications', blank=False, null=False, on_delete=models.CASCADE)
+
+    def delete_notification(self, user):
+        if self.notificator == user:
+            self.delete()
+
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'notificator': {
+                'username': self.notificator.username, 'profile_pic': self.notificator.profile_pic.url
+            },
+            'notificated': {
+                'username': self.notificated.username, 'profile_pic': self.notificated.profile_pic.url
+            },
+            'type': 'accepted_request',
+            'notification': self.notification.serialize()
+        }
+    
+        
+class DeclinedRequestNotification(models.Model):
+    notificator = models.ForeignKey(User, related_name='declined_request_notifications', blank=False, null=False, on_delete=models.CASCADE)
+    notificated = models.ForeignKey(User, related_name='declined_request_sent_notifications', blank=False, null=False, on_delete=models.CASCADE)
+    notification = models.ForeignKey('reservations.Stay', related_name='listing_declined_request_notifications', blank=False, null=False, on_delete=models.CASCADE)
+
+    def delete_notification(self, user):
+        if self.notificated == user:
+            self.delete()
+
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'notificator': {
+                'username': self.notificator.username, 'profile_pic': self.notificator.profile_pic.url
+            },
+            'notificated': {
+                'username': self.notificated.username, 'profile_pic': self.notificated.profile_pic.url
+            },
+            'type': 'declined_request',
+            'notification': self.notification.serialize()
+        }
     
 
 class CommentNotification(models.Model):
@@ -43,7 +94,7 @@ class CommentNotification(models.Model):
 
 
     def delete_notification(self, user):
-        if self.notificator == user:
+        if self.notificated == user:
             self.delete()
 
 
@@ -68,8 +119,9 @@ class RequestToBookNotification(models.Model):
 
 
     def delete_notification(self, user):
-        if self.notificator == user:
+        if self.notificated == user:
             self.delete()
+
 
 
     def serialize(self):

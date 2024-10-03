@@ -7,9 +7,10 @@
 {% block body %}
     <div class="p-3 container border rounded bg-white" id="posts">
         <div class="mb-3">
-            <span class="h4">
-                Listings: <span class="cart-total-items">0</span>
+            <span class="h4 me-3">
+                Listings: <span class="cart-total-items">{{ cart|length }}</span>
             </span>
+            <button class="btn btn-outline-danger clear-wishlist" data-wishlist="true">Clear</button>
         </div>
         <div class="row mb-3 search-posts-options">
             <form class="col d-flex search-posts-container">
@@ -26,7 +27,7 @@
             </div>
         </div>
         <hr>
-        <div class="posts-container">
+        <div class="posts-container" id="wishlist-listings-container">
             {% for item in cart %}
                 {% with post=item %}
                     {% include 'listings/post.html' %}

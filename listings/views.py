@@ -1,5 +1,6 @@
 import json
 import stripe
+import os
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -21,8 +22,11 @@ POSTS_PER_PAGE = 6
 
 # Create your views here.
 def index(request):
+    q = request.GET.get('q') or ''
+
     return render(request, 'index.html', {
-        'categories': Category.paginate_categories()
+        'categories': Category.paginate_categories(),
+        'q' : q
     })
 
 
@@ -66,8 +70,7 @@ def comment(request, post):
             return HttpResponse(status=405)
         
         # Create comment
-        print("rating", request.POST['rating'])
-        comment = Comment(author=request.user, listing=listing, comment=request.POST['comment'], rating=request.POST['rating'])
+        comment = Comment(author=request.user, listing=listing, comment=request.POST['comment'], rating=(request.POST['rating'] or 0))
         comment.save()
 
         # Create notification
@@ -125,31 +128,31 @@ def new_post(request):
         if amenities := request.POST.getlist('amenitie'):
             for amenitie in amenities:
                 amenitie = Amenitie.objects.get(pk=amenitie)
-                amenitie.listing.set([post])
+                amenitie.listing.add(post)
                 amenitie.save()
                 amenities_list.append(str(amenitie))
     
         # Register item in stripe
-        stripe.api_key = settings.SECRET_STRIPE_TEST_KEY
+        if key := settings.SECRET_STRIPE_TEST_KEY:
+            stripe.api_key = key
+            # Create product representing current product
+            product = stripe.Product.create(
+                name=post.title,
+                description=post.description,
+                type='good',
+                metadata=amenities_list
+            )
 
-        # Create product representing current product
-        product = stripe.Product.create(
-            name=post.title,
-            description=post.description,
-            type='good',
-            metadata=amenities_list
-        )
-
-        # Create price representing current product's price
-        product_price = stripe.Price.create(
-            unit_amount=post.price,
-            currency="usd",
-            recurring={"interval": "month"},
-            product=product['id'],
-        )
-
-        # Link product with item in the database via the stripe's product's id
-        post.stripe_id = product['id']
+            # Create price representing current product's price
+            stripe.Price.create(
+                unit_amount=post.price,
+                currency="usd",
+                recurring={"interval": "month"},
+                product=product['id'],
+            )
+            # Link product with item in the database via the stripe's product's id
+            post.stripe_id = product['id']
+            
         post.save()
 
         # Get images
@@ -158,7 +161,7 @@ def new_post(request):
             post_image.save()
 
 
-        return HttpResponse(status=204)
+        return redirect(reverse('post_details', kwargs={'post': post.id}))
 
     return render(request, 'listings/new_post.html')
 
@@ -204,7 +207,10 @@ def post_details(request, post):
         else:
             starting_check_in = post.last_stay.check_out.strftime('%Y-%m-%d')
 
-    has_commented = Comment.objects.filter(author=request.user, listing=post)
+    if request.user.is_authenticated:
+        has_commented = Comment.objects.filter(author=request.user, listing=post)
+    else:
+        has_commented = True
 
     return render(request, 'listings/post_details.html', {
         'post': post,
@@ -331,11 +337,15 @@ def search_listings(request):
 
     # If wishlist was defined then get all listings from wishlist
     if wishlist:
-      wishlist = request.user.wishlist.listings.all()
-      for listing in listings:
-          # If listing not in wishlist then remove it from posts
-          if listing.id not in [wishlist_listing.listing.id for wishlist_listing in wishlist]:
-              listings.remove(listing)
+        wishlist = request.user.wishlist.listings.all()
+        wishlist_listing_ids = [listing.listing.id for listing in wishlist]
+
+        filtered_listings = []
+        for listing in listings:
+            if listing.id in wishlist_listing_ids:
+                filtered_listings.append(listing)
+        
+        listings = filtered_listings
 
     # Paginator
     listings = Paginator(listings, POSTS_PER_PAGE)
@@ -359,36 +369,41 @@ def search_listings(request):
 def update_post(request):
     if request.method == "POST":
         post = get_object_or_404(Listing, pk=request.POST['post'])
-        post.title, post.description, post.price = request.POST['title'], request.POST['description'], request.POST['price']
 
-        # Get fields values
-        fields = []
-        for field in request.POST.getlist('field'):
-            if field:
-                fields.append(field)
+        author, title, location, place_type = request.user, request.POST['title'], request.POST['location'], request.POST['place-type']
+        description, price, category = request.POST['description'], request.POST['price'], request.POST['category']
+        guests, bedrooms, beds, bathrooms = request.POST['guests'], request.POST['bedrooms'], request.POST['beds'], request.POST['bathrooms']
 
-        # Get values values
-        values = []
-        for value in request.POST.getlist('value'):
-            if value:
-                values.append(value)
+        category = get_object_or_404(Category, pk=category)
+        post.author, post.title, post.description, post.price, post.category = author, title, description, price, category
+        post.location, post.guests, post.bedrooms, post.beds, post.bathrooms, post.type = location, guests, bedrooms, beds, bathrooms, place_type
 
-        # Construct json data
-        json_dict = {}
-        for i in range(len(fields)):
-            json_dict[fields[i]] = values[i]
+        # Clear before getting the amenities again to keep track of eliminations
+        post.amenities.clear()
 
-        post.attributes = json_dict
+        # Get amenities
+        amenities_list = []
+        if amenities := request.POST.getlist('amenitie'):
+            for amenitie in amenities:
+                amenitie = Amenitie.objects.get(pk=amenitie)
+                amenitie.listing.add(post)
+                amenitie.save()
+                amenities_list.append(str(amenitie))
+
         post.save()
-
-        return JsonResponse(post.serialize())
+        return redirect(reverse('post_details', kwargs={'post': post.id}))
 
 
 def user_comments(request, username):
     user = get_object_or_404(User, username=username)
     page = request.GET.get('page')
-    
-    comments = Paginator(user.comments.all().order_by('-date'), 3)
+
+    comments = []
+    for listing in user.listings.all():
+        for comment in listing.comments.all():
+            comments.append(comment)
+
+    comments = Paginator(comments, 3)
 
     try:
        comments = comments.page(page)
@@ -396,6 +411,5 @@ def user_comments(request, username):
         comments = comments.page(1)
     except EmptyPage:
         return HttpResponse(status=404)
-
 
     return JsonResponse(Comment.render_comments_json(comments, request.user))

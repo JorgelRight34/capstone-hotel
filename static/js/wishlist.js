@@ -1,27 +1,34 @@
 const wishlist = document.getElementById('wishlist');
 const wishlistItems = wishlist.querySelector('#wishlist-items');
-const clearwishlistBtn = wishlist.querySelector('#clear-wishlist');
+const clearwishlistBtn = document.querySelectorAll('.clear-wishlist');
 const addToWishlistBtns = Array.from(document.querySelectorAll('.add-to-wishlist'));
 const removeWishlistItemBtnsArray = Array.from(document.querySelectorAll('.remove-wishlist-item'));
 const wishlistDropdown = wishlist.querySelector('.wishlist-dropdown');
 const wishlistTotalPrice = Array.from(document.querySelectorAll('.wishlist-total-price'));
 const wishlistTotalItems = Array.from(document.querySelectorAll('.wishlist-total-items'));
+const wishlistListingsContainer = document.getElementById('wishlist-listings-container');
 
 let emptywishlist = false;
 
 
-const loadEmptywishlist = () => {
+const loadEmptywishlist = (empty=false) => {
     emptywishlist = true;
 
-    clearwishlistBtn.style.display = 'none';
+    clearwishlistBtn?.forEach(button => {
+        button.style.display = 'inline-block';
+    })
 
     wishlistTotalPrice.forEach(total => total.textContent = '0');
     wishlistTotalItems.forEach(total => total.textContent = '0');
 
+    if (empty) {
+        wishlistListingsContainer.innerHTML = ``;
+    }
+
     wishlistItems.innerHTML = `
-            <h5 class="text-muted">There's nothing in your wishlist</h5> 
-            It's a good time to start shopping
-        `;
+        <h5 class="text-muted">There's nothing in your wishlist</h5> 
+        It's a good time to start shopping
+    `;
 };
 
 
@@ -39,7 +46,9 @@ const addTowishlist = async (event) => {
 
     wishlistItems.innerHTML += loadwishlistItem(wishlistItem);
 
-    clearwishlistBtn.style.display = 'inline-block';
+    clearwishlistBtn?.forEach(button => {
+        button.style.display = 'inline-block';
+    })
 
     wishlistTotalPrice.forEach(total => {
         total.textContent = parseFloat(total.textContent) + parseFloat(wishlistItem.price);
@@ -76,7 +85,7 @@ const loadwishlistItem = (item) => {
                             <h5>U\$${item.price}</h5>
                         </div>
                         <div class="col">
-                            <button class="btn btn-outline-danger remove-wishlist-item" data-item="${item.id}" onclick="removewishlistItem(event)">
+                            <button class="btn btn-outline-danger remove-wishlist-item" data-item="${item.id}" onclick="removeWishlistItem(event)">
                                 Remove
                             </button>
                         </div>
@@ -90,8 +99,9 @@ const loadwishlistItem = (item) => {
 }
 
 
-const removewishlistItem = async (event) => {
+const removeWishlistItem = async (event) => {
     const itemId = event.target.dataset.item;
+    console.log(event.target)
 
     const response = await fetch(`/remove-wishlist-listing/${itemId}`)
     const item = document.getElementById(`${itemId}`)
@@ -113,7 +123,6 @@ const removewishlistItem = async (event) => {
 const loadwishlist = async () => {
     const response = await fetch(`/wishlist-json`);
     let wishlist = await response.json();
-    console.log(wishlist)
     let totalPrice = 0;
 
     if (wishlist.length == 0) {
@@ -134,17 +143,19 @@ const loadwishlist = async () => {
         total.textContent = wishlist.length;
     });
 
-    clearwishlistBtn.style.display = 'inline-block';
+    clearwishlistBtn?.forEach(button => {
+        button.style.display = 'inline-block';
+    })
 }
 
 
-const clearwishlist = async () => {
+const clearwishlist = async (empty=false) => {
     const response = await fetch('/clear-wishlist');
     while (wishlistItems.firstElementChild) {
         wishlistItems.firstElementChild.remove();
     }
 
-    loadEmptywishlist();
+    loadEmptywishlist(empty);
     loadMessage('<bWishlist cleared</b> You can start adding items to your wishlist!', 'info');
 
     addToWishlistBtns.forEach(button => button.style.display = 'inline-block');
@@ -152,12 +163,15 @@ const clearwishlist = async () => {
 }
 
 
-clearwishlistBtn.addEventListener('click', clearwishlist);
+clearwishlistBtn.forEach(button => {
+    button.addEventListener('click', () => button.dataset.wishlist ? clearwishlist(true) : clearwishlist());
+});
 addToWishlistBtns.forEach(button => {
     button.addEventListener('click', (event) => addTowishlist(event));
 })
 removeWishlistItemBtnsArray.forEach(button => {
-    button.addEventListener('click', (event) => removewishlistItem(event));
+    console.log(button);
+    button.addEventListener('click', (event) => removeWishlistItem(event));
 })
 
 loadwishlist();

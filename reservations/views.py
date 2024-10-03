@@ -9,10 +9,8 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Stay
-from accounts.models import RequestToBookNotification
+from accounts.models import AcceptedRequestNotification, DeclinedRequestNotification, RequestToBookNotification
 from listings.models import Listing
-
-stripe.api_key = settings.SECRET_STRIPE_TEST_KEY
 
 ITEMS_PER_PAGE = 5
 
@@ -29,6 +27,12 @@ def accept_request(request, reservation):
     request_to_book.status = 'accepted'
     request_to_book.save()
 
+    AcceptedRequestNotification(
+        notificator=request.user, 
+        notificated=request_to_book.buyer, 
+        notification=request_to_book
+    ).save()
+
     return HttpResponse(status=204)
 
 
@@ -42,6 +46,12 @@ def decline_request(request, reservation):
     # Accept reservation
     request_to_book.status = 'declined'
     request_to_book.save()
+
+    DeclinedRequestNotification(
+        notificator=request.user, 
+        notificated=request_to_book.buyer, 
+        notification=request_to_book
+    ).save()
 
     return HttpResponse(status=204)
 
@@ -79,19 +89,17 @@ def reserve(request, listing):
     nights = (check_out - check_in).days
 
     if request.method == 'POST':
-
-        print("check_in", check_in)
-        print("check_out", check_out)
-        print("nights: ", nights)
         try:
             amount = listing.price * nights
-            # Create a charge
-            charge = stripe.Charge.create(
-                amount= round(amount * 100), # amount must be in cents
-                currency='usd',
-                description=listing.description,
-                source=request.POST['stripeToken'],
-            )
+            if key := settings.SECRET_STRIPE_TEST_KEY:            
+                stripe.api_key = key
+                # Create a charge
+                stripe.Charge.create(
+                    amount= round(amount * 100), # amount must be in cents
+                    currency='usd',
+                    description=listing.description,
+                    source=request.POST['stripeToken'],
+                )
 
             # Create a request for stay
             stay = Stay(
@@ -109,10 +117,8 @@ def reserve(request, listing):
             stay.save()
             # Create notification
             RequestToBookNotification(notificator=request.user, notificated=listing.author, notification=stay).save()
-            print("Reserve was a success.")
             return redirect('sent_requests')
         except:
-            print("Reseve has failed.")
             return HttpResponse(status=500)
         
     # Get starting check in
@@ -137,11 +143,9 @@ def reserve(request, listing):
         'starting_check_in': starting_check_in
     }
 
-    print(details)
-
-
     return render(request, 'reservations/reserve.html', {
         'listing': listing,
+        'stripe_price': listing.price * 100,
         'stripe_key': settings.STRIPE_TEST_PUBLISHABLE_KEY,
         'details': details,
     })
@@ -191,7 +195,6 @@ def sent_requests_to_book(request):
     pending_requests = Paginator(request.user.stays.filter(buyer=request.user, status='pending'), ITEMS_PER_PAGE)
     pending_requests = paginate(pending_requests, pending_page)
 
-
     # Get page for accepted requests
     accepted_page = request.GET.get('accepted_page')
 
@@ -199,14 +202,12 @@ def sent_requests_to_book(request):
     accepted_requests = Paginator(request.user.stays.filter(buyer=request.user, status='accepted'), ITEMS_PER_PAGE)
     accepted_requests = paginate(accepted_requests, accepted_page)
 
-
     # Get page for declined requests
     declined_page = request.GET.get('declined_page')
 
     # Paginator
     declined_requests = Paginator(request.user.stays.filter(buyer=request.user, status='declined'), ITEMS_PER_PAGE)
     declined_requests = paginate(declined_requests, declined_page)
-
 
     return render(request, 'reservations/requests.html', {
         'pending_requests': pending_requests,
@@ -245,5 +246,4 @@ def search_requests(request):
     except EmptyPage:
         return HttpResponse(status=404)
     
-
     return JsonResponse(Stay.render_requests_json(requests), safe=False)

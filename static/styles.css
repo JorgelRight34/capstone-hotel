@@ -8,8 +8,18 @@
     border-bottom: 2px solid black;
 }
 
+.cursor-pointer {
+    cursor: pointer;
+}
+
 body {
     overflow-x: hidden;
+}
+
+.bottom-navbar {
+    position: fixed;
+    bottom: 0;
+    z-index: 9999;
 }
 
 .hover {
@@ -30,7 +40,6 @@ body {
 .category-link:hover {
     cursor: pointer;
     color: black;
-    border-bottom: 2px solid black;
 }
 
 .categories-sm {
@@ -262,5 +271,9 @@ body {
     /* For Firefox */
     html {
       scrollbar-width: none;
+    }
+
+    .block-body {
+        margin-bottom: 50px;
     }
 }

@@ -7,13 +7,13 @@ const deleteCommentButtons = Array.from(document.querySelectorAll('.delete-comme
 
 const deleteComment = async (event) => {
     const result = confirm('Are you sure you want to delete this comment?')
-    console.log(event.target)
     if (result) {
         const commentId = event.target.dataset.comment;
         const comment = document.querySelector(`#comment-${commentId}`);
         const response = await fetch(`/delete-comment/${commentId}`);
         comment.remove();
         loadMessage('<b>Deleted comment</b> Your comment has been deleted!', 'danger');
+        window.location.reload();
     }
 }
 
